@@ -77,7 +77,7 @@ qiime tools import \
 
 **Demultiplexing and Joining Paired ends
     Keemei: cloud-based validation of tabular bioinformatics file formats in Google Sheets. Rideout JR, Chase JH, Bolyen
-	 E, Ackermann G, González A, Knight R, Caporaso JG. GigaScience. 2016;5:27. http://dx.doi.org/10.1186/
+	 E, Ackermann G, GonzÃ¡lez A, Knight R, Caporaso JG. GigaScience. 2016;5:27. http://dx.doi.org/10.1186/
 	s13742-016-0133-6
 
 JOIN PAIRS
@@ -150,10 +150,10 @@ qiime tools export \
 EVERYONE::::::::::::
 
     Alpha diversity
-        Shannon’s diversity index (a quantitative measure of community richness)
+        Shannonâ€™s diversity index (a quantitative measure of community richness)
         Observed OTUs (a qualitative measure of community richness)
-        Faith’s Phylogenetic Diversity (a qualitiative measure of community richness that incorporates phylogenetic relationships between the features)
-        Evenness (or Pielou’s Evenness; a measure of community evenness)
+        Faithâ€™s Phylogenetic Diversity (a qualitiative measure of community richness that incorporates phylogenetic relationships between the features)
+        Evenness (or Pielouâ€™s Evenness; a measure of community evenness)
     Beta diversity
         Jaccard distance (a qualitative measure of community dissimilarity)
         Bray-Curtis distance (a quantitative measure of community dissimilarity)
