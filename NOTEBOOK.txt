@@ -1,0 +1,619 @@
+African Elephant Microbiome 
+SOFTWARE: QIIME 2 CORE 2018.11 ON VIRTUAL BOX v. 5.2.14 r 123301
+System versions
+Python version: 3.5.5
+QIIME 2 release: 2018.11
+QIIME 2 version: 2018.11.0
+q2cli version: 2018.11.0
+
+Installed plugins
+alignment: 2018.11.0
+composition: 2018.11.0
+cutadapt: 2018.11.0
+dada2: 2018.11.0
+deblur: 2018.11.0
+demux: 2018.11.0
+diversity: 2018.11.0
+emperor: 2018.11.0
+feature-classifier: 2018.11.0
+feature-table: 2018.11.0
+fragment-insertion: 2018.11.0
+gneiss: 2018.11.0
+longitudinal: 2018.11.0
+metadata: 2018.11.0
+phylogeny: 2018.11.0
+quality-control: 2018.11.0
+quality-filter: 2018.11.0
+sample-classifier: 2018.11.0
+taxa: 2018.11.0
+types: 2018.11.0
+vsearch: 2018.11.0
+
+Predicted Workflow 
+https://docs.qiime2.org/2018.11/_images/overview.png
+
+Import
+Demultiplex
+Denoise/Cluster
+
+Representative Sequences
+Taxonomy Classification
+Taxonomy
+Alignment
+Phylogeny
+
+Feature Table
+Differential Abundance
+Barplot/Heatmaps
+Diversity Analyses
+Statistics / Plotting
+
+Basic Qiime Codes
+qiime - shows list of available subcommands
+qiime info - shows what plugins are installed, info about deployment etc. 
+*** --help - any code with --help will show any information about that command
+
+Starting Documents: 
+	---rawdata files: 96 fastq.gz files 
+			V4 Region of the 16s rRNA gene, amplified by PCR Primers 515F and 860R designed by Earth Microbiome project. We modified the primers to include the Illumnia forward, reverse, and multiplex sequencing primers adding a 6bp barcode on the reverse primer to allow for multipleximg for 48 samples. Paired-end 250 nucleotide multiplex sequencing was performed for the resulting libraries on an Illumnia MiSeq at the DNA Core. 
+
+		Reading the RawData Files separated by underscores in the name
+		1. sample identifier
+		2. barcode identifier
+		3. Lane number
+		4. direction of the read (R1 or R2)
+		5. Set number
+
+	---metadata.tsv
+		
+**Importing Data into Qiime (transforming data)
+https://docs.qiime2.org/2018.11/tutorials/importing/
+
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /home/qiime2/Desktop/working/rawdata/ \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-end.qza
+
+**Demultiplexing and Joining Paired ends
+    Keemei: cloud-based validation of tabular bioinformatics file formats in Google Sheets. Rideout JR, Chase JH, Bolyen
+	 E, Ackermann G, González A, Knight R, Caporaso JG. GigaScience. 2016;5:27. http://dx.doi.org/10.1186/
+	s13742-016-0133-6
+
+JOIN PAIRS
+qiime vsearch join-pairs \
+  --i-demultiplexed-seqs demux-paired-end.qza \
+  --o-joined-sequences demux-joined.qza
+
+VIEWING A SUMMARY OF JOINED DATA WITH READ QUALITY
+qiime demux summarize \
+  --i-data demux-joined.qza \
+  --o-visualization demux-joined.qzv
+
+Upload to https://view.qiime2.org/ to view and interact to determine approximate how long your joined reads are for trimming (HIGHEST AT 292 with 9986 of 20242213)
+
+SEQUENCE QUALITY CONTROL
+qiime quality-filter q-score-joined \
+  --i-demux demux-joined.qza \
+  --o-filtered-sequences demux-joined-filtered.qza \
+  --o-filter-stats demux-joined-filter-stats.qza
+
+############################################################################## helpful Docs
+https://docs.qiime2.org/2018.11/tutorials/read-joining/
+https://docs.qiime2.org/2018.11/tutorials/atacama-soils/
+https://docs.qiime2.org/2018.11/tutorials/moving-pictures/
+
+***Denoising and Clustering
+
+qiime deblur denoise-16S \
+  --i-demultiplexed-seqs demux-joined-filtered.qza \
+  --p-trim-length 292 \
+  --p-sample-stats \
+  --o-representative-sequences rep-seqs.qza \
+  --o-table table.qza \
+  --o-stats deblur-stats.qza
+
+qiime feature-table summarize \
+  --i-table table.qza \
+  --o-visualization table.qzv \
+  --m-sample-metadata-file metadata.tsv
+
+qiime feature-table tabulate-seqs \
+  --i-data rep-seqs.qza \
+  --o-visualization rep-seqs.qzv
+
+qiime metadata tabulate \
+  --m-input-file demux-joined-filter-stats.qza \
+  --o-visualization demux-joined-filter-stats.qzv
+
+qiime deblur visualize-stats \
+  --i-deblur-stats deblur-stats.qza \
+  --o-visualization deblur-stats.qzv
+
+
+PHYLOGENY
+
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences rep-seqs.qza \
+  --o-alignment aligned-rep-seqs.qza \
+  --o-masked-alignment masked-aligned-rep-seqs.qza \
+  --o-tree unrooted-tree.qza \
+  --o-rooted-tree rooted-tree.qza
+
+(QIIME 2 currently has no way to vizualize a tree. Export and view on https://itol.embl.de/)
+
+qiime tools export \
+  --input-path rooted-tree.qza \
+  --output-path exported-tree
+
+
+EVERYONE::::::::::::
+
+    Alpha diversity
+        Shannon’s diversity index (a quantitative measure of community richness)
+        Observed OTUs (a qualitative measure of community richness)
+        Faith’s Phylogenetic Diversity (a qualitiative measure of community richness that incorporates phylogenetic relationships between the features)
+        Evenness (or Pielou’s Evenness; a measure of community evenness)
+    Beta diversity
+        Jaccard distance (a qualitative measure of community dissimilarity)
+        Bray-Curtis distance (a quantitative measure of community dissimilarity)
+        unweighted UniFrac distance (a qualitative measure of community dissimilarity that incorporates phylogenetic relationships between the features)
+        weighted UniFrac distance (a quantitative measure of community dissimilarity that incorporates phylogenetic relationships between the features)
+
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table table.qza \
+  --p-sampling-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --output-dir core-metrics-results
+
+**2000 drops CR3(1968 reads) and OB182 (40 reads) from further analyses
+
+ALPHA DIVERSITY
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/evenness_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization core-metrics-results/evenness-group-significance.qzv
+
+qiime diversity alpha-rarefaction \
+  --i-table table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --o-visualization alpha-rarefaction.qzv
+
+PAIRWISE COMPARISION AMONG SAMPLE VARIABLES (Species, Raider, Habitat, Sex, Age)
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization core-metrics-results/unweighted-unifrac-Species-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --o-visualization core-metrics-results/unweighted-unifrac-Raider-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Age \
+  --o-visualization core-metrics-results/unweighted-unifrac-Age-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Sex \
+  --o-visualization core-metrics-results/unweighted-unifrac-Sex-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --o-visualization core-metrics-results/unweighted-unifrac-Habitat-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Group \
+  --o-visualization core-metrics-results/unweighted-unifrac-Group-significance.qzv \
+  --p-pairwise
+
+JUST AFRICANA DIVERSITY::::::::::::::
+
+qiime feature-table filter-samples \
+  --i-table table.qza \
+  --m-metadata-file metadata.tsv \
+  --p-where "Species='africana'" \
+  --o-filtered-table africana-table.qza
+
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table africana-table.qza \
+  --p-sampling-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --output-dir africana-core-metrics-results
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity africana-core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization africana-core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity africana-core-metrics-results/evenness_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization africana-core-metrics-results/evenness-group-significance.qzv
+
+qiime diversity alpha-rarefaction \
+  --i-table africana-table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --o-visualization africana-alpha-rarefaction.qzv
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix africana-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --o-visualization africana-core-metrics-results/unweighted-unifrac-Raider-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix africana-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Age \
+  --o-visualization africana-core-metrics-results/unweighted-unifrac-Age-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix africana-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Sex \
+  --o-visualization africana-core-metrics-results/unweighted-unifrac-Sex-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix africana-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --o-visualization africana-core-metrics-results/unweighted-unifrac-Habitat-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix africana-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Group \
+  --o-visualization africana-core-metrics-results/unweighted-unifrac-Group-significance.qzv \
+  --p-pairwise
+
+JUST CYCLOTIS DIVERSITY:::::::::::::::::::::
+
+qiime feature-table filter-samples \
+  --i-table table.qza \
+  --m-metadata-file metadata.tsv \
+  --p-where "Species='cyclotis'" \
+  --o-filtered-table cyclotis-table.qza
+
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table cyclotis-table.qza \
+  --p-sampling-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --output-dir cyclotis-core-metrics-results
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity cyclotis-core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization cyclotis-core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity cyclotis-core-metrics-results/evenness_vector.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization cyclotis-core-metrics-results/evenness-group-significance.qzv
+
+qiime diversity alpha-rarefaction \
+  --i-table cyclotis-table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 2000 \
+  --m-metadata-file metadata.tsv \
+  --o-visualization cyclotis-alpha-rarefaction.qzv
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix cyclotis-core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Sex \
+  --o-visualization cyclotis-core-metrics-results/unweighted-unifrac-Sex-significance.qzv \
+  --p-pairwise
+
+CLASSIFIER
+Download Greengenes database (16SrRNA) 13_8
+https://docs.qiime2.org/2018.11/data-resources/
+
+qiime feature-classifier classify-sklearn \
+  --i-classifier gg-13-8-99-515-806-nb-classifier.qza \
+  --i-reads rep-seqs.qza \
+  --o-classification taxonomy.qza
+
+qiime metadata tabulate \
+  --m-input-file taxonomy.qza \
+  --o-visualization taxonomy.qzv
+
+qiime taxa barplot \
+  --i-table table.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization taxa-bar-plots.qzv
+
+Differential Abundance Test
+
+Linear Regression --- With both species in Dataset
+qiime gneiss correlation-clustering \
+  --i-table table.qza \
+  --o-clustering hierarchy.qza
+
+qiime gneiss ilr-hierarchical \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --o-balances balances.qza
+
+qiime gneiss ols-regression \
+  --p-formula "Species+Raider+Habitat" \
+  --i-table balances.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization regression_summary.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --p-color-map seismic \
+  --o-visualization species_heatmap.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --p-color-map seismic \
+  --o-visualization Raider_heatmap.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --p-color-map seismic \
+  --o-visualization Habitat_heatmap.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 3 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization LV3_Species_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 4 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization LV4_Species_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table table.qza \
+  --i-tree hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 5 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization LV5_Species_taxa_summary.qzv
+
+JUST AFRICANA in dataset
+
+qiime gneiss correlation-clustering \
+  --i-table africana-table.qza \
+  --o-clustering africana-hierarchy.qza
+
+qiime gneiss ilr-hierarchical \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --o-balances africana-balances.qza
+
+qiime gneiss ols-regression \
+  --p-formula "Raider+Habitat" \
+  --i-table africana-balances.qza \
+  --i-tree africana-hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization africana-regression_summary.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --p-color-map seismic \
+  --o-visualization africana_Raider_heatmap.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --p-color-map seismic \
+  --o-visualization africana_Habitat_heatmap.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 4 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --o-visualization africana_LV4_Raider_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 5 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Raider \
+  --o-visualization africana_LV5_Raider_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 4 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --o-visualization africana_LV4_Habitat_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table africana-table.qza \
+  --i-tree africana-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 5 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Habitat \
+  --o-visualization africana_LV5_Habitat_taxa_summary.qzv
+
+Just Cyclotis and matching africana (Forest, no crop raiding)
+
+qiime feature-table filter-samples \
+  --i-table table.qza \
+  --m-metadata-file metadata.tsv \
+  --p-where "Raider='No'" \
+  --o-filtered-table nonRaider-table.qza
+
+qiime feature-table filter-samples \
+  --i-table nonRaider-table.qza \
+  --m-metadata-file metadata.tsv \
+  --p-where "Habitat='Forest'" \
+  --o-filtered-table NR-Forest-table.qza
+
+qiime gneiss correlation-clustering \
+  --i-table NR-Forest-table.qza \
+  --o-clustering NR-Forest-hierarchy.qza
+
+qiime gneiss ilr-hierarchical \
+  --i-table NR-Forest-table.qza \
+  --i-tree NR-Forest-hierarchy.qza \
+  --o-balances NR-Forest-balances.qza
+
+qiime gneiss ols-regression \
+  --p-formula "Species" \
+  --i-table NR-Forest-balances.qza \
+  --i-tree NR-Forest-hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization NR-Forest-regression_summary.qzv
+
+qiime gneiss dendrogram-heatmap \
+  --i-table NR-Forest-table.qza \
+  --i-tree NR-Forest-hierarchy.qza \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --p-color-map seismic \
+  --o-visualization NR-Forest_heatmap.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table NR-Forest-table.qza \
+  --i-tree NR-Forest-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 4 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization NR-Forest_LV4_Species_taxa_summary.qzv
+
+qiime gneiss balance-taxonomy \
+  --i-table NR-Forest-table.qza \
+  --i-tree NR-Forest-hierarchy.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-taxa-level 5 \
+  --p-balance-name 'y0' \
+  --m-metadata-file metadata.tsv \
+  --m-metadata-column Species \
+  --o-visualization NR-Forest_LV5_Species_taxa_summary.qzv
+
+qiime taxa collapse \
+  --i-table table.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-level 7 \***
+  --output-dir taxtable/lvl7_taxonomy***
+
+***Exported qza files for each taxonomic level (1-7)--- Kingdom(1), Phylum(2), Class(3), Order(4), Family(5), Genus(6), Species(7)
+
+wget https://github.com/picrust/picrust2/releases/download/v2.0.3-b/picrust2-2.0.3-b.zip
+unzip picrust2-2.0.3-b.zip
+cd picrust2-2.0.3-b
+conda-env update -n qiime2-2018.11 -f picrust2-env.yaml
+pip install --editable 
+
+cd ..
+wget https://github.com/gavinmdouglas/q2-picrust2/releases/download/v0.0.2/q2-picrust2-0.0.2.zip
+unzip q2-picrust2-0.0.2.zip
+cd q2-picrust2-0.0.2
+python setup.py install
+qiime dev refresh-cache
+cd ..
+
+wget http://kronos.pharmacology.dal.ca/public_files/tutorial_datasets/picrust2_tutorial_files/reference.fna.qza
+
+wget http://kronos.pharmacology.dal.ca/public_files/tutorial_datasets/picrust2_tutorial_files/reference.tre.qza
+
+qiime fragment-insertion sepp --i-representative-sequences /home/qiime2/Desktop/working/rep-seqs.qza \
+                              --p-threads 1 --i-reference-alignment reference.fna.qza \
+                              --i-reference-phylogeny reference.tre.qza \
+                              --output-dir picrust_setup
+
+qiime picrust2 custom-tree-pipeline --i-table /home/qiime2/picrust2-2.0.3-b/mine/table.qza \
+                                    --i-tree /home/qiime2/picrust2-2.0.3-b/mine/picrust_setup/tree.qza \
+                                    --output-dir /home/qiime2/picrust2-2.0.3-b/mine/output 
+                               
+ec_metagenome.qza - EC metagenome predictions (rows are EC numbers and columns are samples).
+ko_metagenome.qza - KO metagenome predictions (rows are KOs and columns are samples).
+pathway_abundance.qza - MetaCyc pathway abundance predictions (rows are pathways and columns are samples).
+pathway_coverage.qza - MetaCyc pathway predicted coverages (rows are pathways and columns are samples).
+
+qiime feature-table summarize --i-table output/pathway_abundance.qza --o-visualization output/pathway_abundance.qzv
+
+qiime feature-table summarize --i-table output/ec_metagenome.qza --o-visualization output/ec_metagenome.qzv
+
+qiime feature-table summarize --i-table output/ko_metagenome.qza --o-visualization output/ko_metagenome.qzv
+
+qiime feature-table summarize --i-table output/pathway_coverage.qza --o-visualization output/pathway_coverage.qzv
+
+qiime diversity core-metrics --i-table output/pathway_abundance.qza --p-sampling-depth 7000 --m-metadata-file metadata.tsv --output-dir pathabun_core_metrics_out --p-n-jobs 1
+
+qiime diversity core-metrics --i-table output/ec_metagenome.qza --p-sampling-depth 7000 --m-metadata-file metadata.tsv --output-dir EC_core_metrics_out --p-n-jobs 1
+
+qiime diversity core-metrics --i-table output/ko_metagenome.qza --p-sampling-depth 7000 --m-metadata-file metadata.tsv --output-dir KO_core_metrics_out --p-n-jobs 1
+
+qiime diversity core-metrics --i-table output/pathway_coverage.qza --p-sampling-depth 7000 --m-metadata-file metadata.tsv --output-dir pathway_coverage_core_metrics_out --p-n-jobs 1
