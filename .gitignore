@@ -1,0 +1,54 @@
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.Ruserdata
+
+
+# RStudio files
+.Rproj.user/
+
+# Directories
+Papers/
+Presentations/
+Attempt_1/
+Manuscript/
+
+# Data files
+*.fastq.gz
+*.tgz
+*.tar.gz
+*.gz
+*.sam
+*.bam
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa
+*.idx
+*.bai
+*.vcf
+*.dict
+*.fasta
+*.fai
+
+# knitr and R markdown default cache directories
+/*_cache/
+/cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
+rsconnect/
+.Rproj.user
+
+#Mac files
+.DS_Store
+.Rdata
+.httr-oauth

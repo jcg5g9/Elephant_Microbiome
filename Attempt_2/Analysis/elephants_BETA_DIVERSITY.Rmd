@@ -1,0 +1,312 @@
+---
+title: "African Elephant Microbiome Stats"
+author: "Joe Gunn"
+date: "2/21/2019"
+output: html_document
+---
+
+# AFRICAN ELEPHANT MICROBIOME - BETA DIVERSITY
+
+Purpose: Here we are assessing Beta diversity (differences in microbial community composition) between African Elephant species and among African Elephant groups using PERMANOVA. Groups include all combinations of diet and habitat so that all combinations can be compared. We also include beta dispersion analyses for African Elephant species, diet, and habitat to determine whether there are differences in within-group variance. We visualized beta diversity using NMDS.
+
+Data used:
+
+      TABLE output from QIIME: all OTUs detected across African Elephant sampels, taxonomic level, and raw abundance for each individual <- 8,248 OTUs (after rarefaction) 
+
+## Libraries Needed for Analysis
+```{r libraries, echo=FALSE, include = FALSE}
+
+library(readxl)
+library(cowplot)
+library(tidyverse)
+library(qiime2R)
+library(vegan)
+library(devtools)
+library(DescTools)
+library(factoextra)
+library(ade4)
+library(lme4)
+library(nlme)
+library(ggrepel)
+library(GGally)
+library(lattice)
+library(epiDisplay)
+library(multcomp)
+library(taRifx)
+library(ape)
+library(openxlsx)
+library(multcomp)
+library(phyloseq)
+library(lmerTest)
+```
+
+## Metadata
+```{r Metadata, include = FALSE}
+##Read in the metadata, which includes all labels and covariates associated with each individual in the data set. Metadata includes individual sample ID (index), barcode sequence, linker primer sequence, species (africana or cyclotis), diet (crop raider or non-crop raider), habitat (forest or savanna), age, sex, and group (a descriptor for each unique combination of species-diet-habitat)
+
+metadata <- read_tsv("../data/metadata/METADATA.tsv") #metadata read in
+
+metadata <- metadata %>% 
+  as.data.frame() %>% 
+  mutate(BarcodeSequence = factor(BarcodeSequence), LinkerPrimerSequence = factor(LinkerPrimerSequence), Species = factor(Species), Raider = factor(Raider), Habitat = factor(Habitat), Age = factor(Age), Sex = factor(Sex), Elephant = factor(Elephant), Group = factor(Group), Description = factor(Description)) #convert table to data frame and convert all characters, except for sample id, into factors
+  colnames(metadata)[colnames(metadata) == "Sample-id"] <- "sample_id" 
+```
+
+## Get Rarefied OTU abundance data
+```{r, echo=FALSE}
+options(scipen = 999) #gets rid of scientific notatation, useful for reading p-values
+
+#read in taxonomic designations and OTU abundance
+aem_physeq <- qza_to_phyloseq(features = "../data/qiime_data/table.qza", taxonomy = "../data/qiime_data/taxonomy.qza",  tree = "../data/qiime_data/rooted-tree.qza", metadata = "../data/metadata/METADATA.tsv") 
+
+#omit sample OB182 due to low read count. We don't want to rarefy to such a low number of reads across the whole dataset
+aem_physeq <- subset_samples(aem_physeq, Elephant != "OB182") 
+
+#Rarefy and clean the data set for use in downstream analysis
+aem_physeq <- rarefy_even_depth(aem_physeq, rngsee = 5) #must set seed in order to maintain the same rarefied number of otus
+
+    #Number of OTUS: 8248
+    #Number of reads per sample: 11460 
+      
+#Extract data of all types (meta data, all taxonomy data)
+aem_meta <- as.data.frame(sample_data(aem_physeq))
+aem_tax <- as.data.frame(tax_table(aem_physeq))
+aem_tax <- aem_tax %>% 
+  rownames_to_column("otu")
+
+aem_data <- as.data.frame(otu_table(aem_physeq))
+aem_data <- aem_data %>% 
+  rownames_to_column("otu")
+
+aem_tax_data <- merge(aem_tax, aem_data, by = "otu")
+
+#Subset the data by the three most abundant phyla: Bacteroidetes, firmicutes, proteobacteria
+aem_bacteroidetes <- aem_tax_data %>% 
+  filter(Phylum == "p__Bacteroidetes")
+
+aem_firmicutes <- aem_tax_data %>% 
+  filter(Phylum == "p__Firmicutes")
+
+aem_proteobacteria <- aem_tax_data %>% 
+  filter(Phylum == "p__Proteobacteria")
+```
+
+## Prepare and clean data for two datasets
+```{r}
+#Prepare data at the OTU level for analysis with both datasets (just forest non-cropraiders from both species, and just africana)
+aem_physeq <- as.data.frame(otu_table(aem_physeq))
+aem_physeq_t <- t(aem_physeq)
+aem_physeq <- as.data.frame(aem_physeq_t)
+aem_physeq <- aem_physeq %>% 
+  rownames_to_column("sample_id")
+
+aem_physeq <- merge(metadata, aem_physeq, by = "sample_id")
+aem_physeq_forest_ncr <- aem_physeq %>% 
+  filter(Habitat == "Forest") %>% 
+  filter(Raider == "No")
+
+aem_physeq_africana <- aem_physeq %>% 
+  filter(Species == "africana")
+```
+
+## Prepare Data for NMDS for African elephant Species, Diet, and Habitat
+```{r}
+#Make NMDS for all samples and both datasets together
+aem_physeq_all_data <- aem_physeq[,-c(2:11)]
+aem_physeq_all_data <- column_to_rownames(aem_physeq_all_data, "sample_id")
+
+aem_all_veg <- decostand(aem_physeq_all_data, "total")
+aem_all_veg <- vegdist(aem_all_veg, "bray")
+aem_all_pcoa <- pcoa(aem_all_veg)
+
+aem_all_pcs <- aem_all_pcoa$vectors
+aem_all_pcs <- as.data.frame(aem_all_pcs)
+aem_all_pcs <- aem_all_pcs %>% 
+  rownames_to_column("sample_id")
+
+aem_all_pcs <- merge(metadata, aem_all_pcs, by = "sample_id")
+aem_physeq_all_ado1 <- column_to_rownames(aem_physeq, "sample_id")
+
+#Run NMDS
+vare.mds0_all <- isoMDS(aem_all_veg, trace = 0)
+vare.mds_all <- metaMDS(aem_physeq_all_data, trace = FALSE, autotransform = F)
+score_all <- scores(vare.mds_all)
+score_all <- as.data.frame(score_all)
+score_all <- score_all %>% 
+  rownames_to_column("sample_id")
+
+merge_all <- merge(metadata, score_all, by = "sample_id")
+```
+
+## Run PERMANOVA analysis for African elephant Species, Diet, and Habitat
+## Prepare data for PERMANOVA FOR SPECIES
+```{r}
+aem_veg_data <- aem_physeq_forest_ncr[,-c(2:11)]
+aem_veg_data <- column_to_rownames(aem_veg_data, "sample_id")
+
+#Run Distance Matrix on Abundance
+aem_veg <- decostand(aem_veg_data, "total") #standardize abundance data by dividing each number by the total number of samples (individuals in the dataset)
+aem_veg <- vegdist(aem_veg, "bray") #calculate Bray-curtis distances between samples
+aem_pcoa <- pcoa(aem_veg) #calculates principal components
+
+#Prepare PCOA (unused in manuscript)
+aem_pcs <- aem_pcoa$vectors
+aem_pcs <- as.data.frame(aem_pcs)
+aem_pcs <- aem_pcs %>% 
+  rownames_to_column("sample_id")
+
+aem_pcs <- merge(metadata, aem_pcs, by = "sample_id")
+aem_physeq_ado1 <- column_to_rownames(aem_physeq_forest_ncr, "sample_id")
+```
+
+## Prepare data for PERMANOVA FOR DIET and HABITAT
+```{r}
+aem_veg2_data <- aem_physeq_africana[,-c(2:11)]
+aem_veg2_data <- column_to_rownames(aem_veg2_data, "sample_id")
+
+#Run Distance Matrix on Abundance
+aem_veg2 <- decostand(aem_veg2_data, "total")
+aem_veg2 <- vegdist(aem_veg2, "bray")
+aem_pcoa2 <- pcoa(aem_veg2)
+
+#Prepare PCOA
+aem_pcs2 <- aem_pcoa2$vectors
+aem_pcs2 <- as.data.frame(aem_pcs2)
+aem_pcs2 <- aem_pcs2 %>% 
+  rownames_to_column("sample_id")
+
+aem_pcs2 <- merge(metadata, aem_pcs2, by = "sample_id")
+aem_physeq_ado2 <- column_to_rownames(aem_physeq_africana, "sample_id")
+```
+
+## Beta Dispersion Anlysis
+```{r}
+
+#Beta Dispersion Analysis for African Elephant species
+species_beta <- factor(aem_physeq_ado1[,3])
+beta_analysis <- betadisper(aem_veg, species_beta, type = c("centroid"))
+
+anova(beta_analysis) #P = 0.4346, F = 0.6405
+
+#Graph Beta Analysis for Species
+   # beta_vectors <- beta_analysis$vectors
+   # beta_vectors <- as.data.frame(beta_vectors)
+   # beta_vectors <- beta_vectors %>% rownames_to_column("sample_id")
+   # beta_vectors <- merge(metadata, beta_vectors, by = "sample_id")
+   # beta_graph <- ggplot(beta_vectors, aes(x = PCoA1, y = PCoA2, color = Species)) + geom_point()
+
+#Beta Dispersion Analysis for Diet and Habitat
+diet_beta <- factor(aem_physeq_ado2[,4])
+habitat_beta <- factor(aem_physeq_ado2[,5])
+beta_analysis2 <- betadisper(aem_veg2, diet_beta, type = c("centroid"))
+beta_analysis3 <-betadisper(aem_veg2, habitat_beta, type = c("centroid"))
+
+anova(beta_analysis2) #P = 0.1224, F = 2.5136
+anova(beta_analysis3) #P = 0.1022, F = 2.8266
+```
+
+## Run PERMANOVA
+```{r}
+
+ado_species <- adonis(aem_veg ~ Species, aem_physeq_ado1, Strata = Sex, distance = "bray", permutations = 9999)
+  #p-value = 0.001
+  #F-model = 3.527
+
+ado_diet_hab_interaction <- adonis(aem_veg2 ~ Raider*Habitat, Strata = Sex, aem_physeq_ado2, distance = "bray", permutations = 9999)
+  #p-value = 0.0974
+  #F-model value = 1.369
+  
+#####Not a significant interaction, so run diet and habitat separately with sex as strata and infer main effects#########
+
+ado_diet <- adonis(aem_veg2 ~ Raider, aem_physeq_ado2, Strata = Sex, distance = "bray", permutations = 9999)
+  #p-value = 0.011
+  #F-model value = 1.861
+
+ado_habitat <- adonis(aem_veg2 ~ Habitat, aem_physeq_ado2, Strata = Sex, distance = "bray", permutations = 9999)
+  #p-value = 0.0001
+  #F-model value = 2.874
+```
+
+## NMDS for Abundance data
+```{r}
+###PLOT NMDS BY SPECIES
+vare.mds0 <- isoMDS(aem_veg, trace = 0)
+vare.mds <- metaMDS(aem_veg_data, trace = FALSE, autotransform = F)
+score <- scores(vare.mds)
+score <- as.data.frame(score)
+score <- score %>% 
+  rownames_to_column("sample_id")
+
+merge <- merge(metadata, score, by = "sample_id")
+
+levels(merge$Species) <- c("L. africana", "L. cyclotis")
+
+centroids <- aggregate(cbind(NMDS1, NMDS2) ~ Species, merge, mean)
+gg <- merge(merge, aggregate(cbind(mean.x = NMDS1, mean.y = NMDS2) ~ Species, merge, mean),by = "Species")
+
+
+species_perm <- ggplot(gg, aes(NMDS1, NMDS2, color = Species)) + 
+  geom_point(size = 2, show.legend = F) + 
+  geom_point(aes(x = mean.x, y = mean.y), size = 2, show.legend = F) + 
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  theme(legend.position=c(0.01,0.85)) + 
+  scale_color_manual(values = c("red2", "blue2")) + 
+  labs(color = "Elephant Species", title = "Beta Diversity: Split Models", y = "NMDS 2") + 
+  theme(axis.title.x = element_blank()) + theme(legend.text = element_text(face = "italic")) +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold"))
+
+#PLOT NMDS BY DIET
+vare.mds1 <- isoMDS(aem_veg2, trace = 0)
+vare.mds2 <- metaMDS(aem_veg2_data, trace = FALSE, autotransform = F)
+score_diet <- scores(vare.mds2)
+score_diet <- as.data.frame(score_diet)
+score_diet <- score_diet %>% 
+  rownames_to_column("sample_id")
+
+merge_diet <- merge(metadata, score_diet, by = "sample_id")
+
+#Plot
+levels(merge_diet$Raider) <- c("Non-Crop-Raider", "Crop-Raider")
+centroids_diet <- aggregate(cbind(NMDS1, NMDS2) ~ Raider, merge_diet, mean)
+gg_diet <- merge(merge_diet, aggregate(cbind(mean.x = NMDS1, mean.y = NMDS2) ~ Raider, merge_diet, mean), by = "Raider")
+
+diet_perm <- ggplot(gg_diet, aes(NMDS1, NMDS2, color = Raider)) +  
+  geom_point(size = 2, show.legend = F) +
+  geom_point(aes(x = mean.x, y = mean.y), size = 2, show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = F) + 
+  theme(legend.position = c(0.01,0.85)) + 
+  scale_color_manual(values = c("midnightblue", "deeppink1")) + 
+  theme(axis.title.x = element_blank()) + 
+  labs(y = "NMDS 2", color = "Elephant Diet")
+
+#PLOT NMDS BY HABITAT
+vare.mds_hab <- isoMDS(aem_veg2, trace = 0)
+vare.mds_hab2 <- metaMDS(aem_veg2_data, trace = FALSE, autotransform = F)
+score_hab <- scores(vare.mds_hab2)
+score_hab <- as.data.frame(score_hab)
+score_hab <- score_hab %>% rownames_to_column("sample_id")
+merge_hab <- merge(metadata, score_hab, by = "sample_id")
+
+#Plot
+centroids_hab <- aggregate(cbind(NMDS1, NMDS2) ~ Habitat, merge_hab, mean)
+gg_hab <- merge(merge_hab, aggregate(cbind(mean.x = NMDS1, mean.y = NMDS2) ~ Habitat, merge_hab, mean), by = "Habitat")
+
+habitat_perm <- ggplot(gg_hab, aes(NMDS1, NMDS2, color = Habitat)) + 
+  geom_point(size = 2, show.legend = F) +
+  geom_point(aes(x = mean.x,y = mean.y), size = 2,  show.legend = F) +
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = F) + 
+  theme_set(theme_cowplot(12)) +
+  theme(legend.position = c(0.01,0.85)) + 
+  scale_color_manual(values = c("forestgreen", "coral1")) + labs(color = "Elephant Habitat", x = "NMDS 1", y = "NMDS 2")
+
+
+#PLOT EVERYTHING TOGETHER
+pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Research/Projects/Elephant_Microbiome/Attempt_2/visualization/beta_diversity_figures/beta_diversity.pdf", width = 6, height = 12) 
+
+plot_grid(species_perm, diet_perm, habitat_perm, nrow = 3, labels = c("A", "B", "C"))
+
+dev.off()
+```
+

@@ -1,0 +1,213 @@
+---
+title: "AEMB_Rstats"
+author: "Joe Gunn"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r}
+#Load Necessary Libraries
+
+library(readxl)
+library(tidyverse)
+library(cowplot)
+library(devtools)
+library(DescTools)
+library(factoextra)
+library(ade4)
+library(lme4)
+library(nlme)
+library(ggrepel)
+library(GGally)
+library(lattice)
+library(epiDisplay)
+library(multcomp)
+library(vegan)
+library(taRifx)
+library(ape)
+library(qiime2R)
+```
+
+```{r}
+#Read in metadata files and qza output files from Qiime using package "qiime2R"
+
+metadata <- read_excel("AEMB_covariates_filtered.xlsx")
+metadata <- as.data.frame(metadata)
+shannon_all <- read_qza("shannon_vector.qza")
+
+shannon_all <- shannon_all$data %>% as.data.frame() 
+shannon_all <- shannon_all %>% rownames_to_column("sample_id")
+shannon_all <- cbind(shannon_all, metadata)
+shannon_all <- shannon_all[,-c(3)]
+
+shan_spec_plot <- ggplot(shannon_all, aes(x = Species, y = shannon)) + geom_boxplot()
+
+shan_group_plot <- ggplot(shannon_all, aes(x = Group, y = shannon)) + geom_boxplot()
+
+
+lm_spec_shan <- lm(shannon ~ Raider, data = shannon_all)
+summary(lm_spec_shan)
+
+```
+
+```{r}
+
+###PCoA for various groups
+
+pcoa_qiime <- read_qza("unweighted_unifrac_pcoa_results.qza")
+pcoa_dat <- pcoa_qiime$data$Vectors
+pcoa_meta <- as.data.frame(cbind(metadata, pcoa_dat))
+pcoa_meta_africana <- pcoa_meta %>% filter(Species == "africana")
+
+
+pcoa_spec <- ggplot(pcoa_meta, aes(x = PC1, y = PC2, color = Species)) +      
+      geom_point()
+
+pcoa_hab <-  ggplot(pcoa_meta_africana, aes(x = PC1, y = PC2, color = Habitat)) +
+      geom_point()
+
+pcoa_raid <-  ggplot(pcoa_meta_africana, aes(x = PC1, y = PC2, color = Raider)) + 
+      geom_point()
+
+pcoa_group <- ggplot(pcoa_meta, aes(x = PC1, y = PC2, color = Group)) + geom_point()
+pcoa_group
+
+
+
+```
+
+```{r Abundance}
+
+### Based on raw abundance at the species level
+
+raw_species <- read_excel("raw_species.xlsx")
+raw_species <- as.matrix(raw_species)
+raw_species_t <- t(raw_species)
+colnames(raw_species_t) <- raw_species_t[1, ]
+raw_species_t <- raw_species_t[-1, ]
+raw_species <- t(raw_species_t)
+raw_species_df <- as.data.frame(raw_species)
+raw_species_df <- japply(raw_species_df, which(sapply(raw_species_df, class)=="factor"), as.numeric)
+
+veg <- vegdist(raw_species_df, "bray")
+
+species_pcoa <- pcoa(veg)
+
+species_pcs <- as.data.frame(species_pcoa$vectors)
+
+covariates <- read_excel("AEMB_covariates.xlsx")
+
+pcs_withDATA <- cbind(covariates, species_pcs)
+
+pcs_withDATA <- pcs_withDATA %>% mutate(Species = factor(Species), 
+          Raider = factor(Raider), 
+          Habitat = factor(Habitat), 
+          Age = factor(Age), 
+          Sex = factor(Sex), 
+          Group = factor(Group), 
+          Description = factor(Description))
+
+
+pcs_species_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, 
+          color = Species)) 
+        + geom_point()
+
+pcs_habitat_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, 
+          color = Habitat)) 
+        + geom_point()
+
+pcs_sex_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Sex)) 
+        + geom_point()
+
+pcs_age_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Age))
+        + geom_point()
+
+pcs_group_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Group))         + geom_point()
+
+### PCoA plots by different Covariates 
+
+pcs_species_plot
+pcs_habitat_plot
+pcs_sex_plot
+pcs_age_plot
+pcs_group_plot
+
+
+
+africana <- pcs_withDATA %>% filter(Species == "africana")
+
+cyclotis <- pcs_withDATA %>% filter(Species == "cyclotis")
+
+pcs_africana_sex <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Sex)) + geom_point()
+pcs_africana_habitat <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Habitat)) + geom_point()
+pcs_africana_raiders <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Raider)) + geom_point()
+pcs_africana_sex
+pcs_africana_habitat
+pcs_africana_raiders
+
+species_pcoa$values$Broken_stick
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+raw_phylum <- read_excel("raw_phylum.xlsx")
+raw_phylum <- as.matrix(raw_phylum)
+raw_phylum_t <- t(raw_phylum)
+raw_phylum_t
+colnames(raw_phylum_t) <- raw_phylum_t[1, ]
+raw_phylum_t <- raw_phylum_t[-1, ]
+raw_phylum <- t(raw_phylum_t)
+raw_phylum
+raw_phylum_df <- as.data.frame(raw_phylum)
+raw_phylum_df <- japply(raw_phylum_df, which(sapply(raw_phylum_df, class) == "factor"), as.numeric)
+
+veg_phy <- vegdist(raw_phylum_df, "bray")
+veg_phy
+
+phylum_pcoa <- pcoa(veg_phy)
+
+phylum_pcs <- as.data.frame(phylum_pcoa$vectors)
+
+covariates <- read_excel("AEMB_covariates.xlsx")
+covariates
+pcs_phylum_withDATA <- cbind(covariates, phylum_pcs)
+pcs_phylum_withDATA <- pcs_phylum_withDATA %>% mutate(Species = factor(Species), Raider = factor(Raider), Habitat = factor(Habitat), Age = factor(Age), Sex = factor(Sex), Group = factor(Group), Description = factor(Description))
+pcs_phylum_withDATA
+
+pcs_phylum_species_plot <- ggplot(pcs_phylum_withDATA, aes(x = Axis.1, y = Axis.2, color = Species)) + geom_point()
+pcs_phylum_habitat_plot <- ggplot(pcs_phylum_withDATA, aes(x = Axis.1, y = Axis.2, color = Habitat)) + geom_point()
+pcs_phylum_sex_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Sex)) + geom_point()
+pcs_age_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Age)) + geom_point()
+pcs_group_plot <- ggplot(pcs_withDATA, aes(x = Axis.1, y = Axis.2, color = Group)) + geom_point()
+
+### PCoA plots by different Covariates 
+pcs_phylum_species_plot
+pcs_phylum_habitat_plot
+pcs_sex_plot
+pcs_age_plot
+pcs_group_plot
+
+
+
+africana <- pcs_withDATA %>% filter(Species == "africana")
+
+cyclotis <- pcs_withDATA %>% filter(Species == "cyclotis")
+
+pcs_africana_sex <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Sex)) + geom_point()
+pcs_africana_habitat <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Habitat)) + geom_point()
+pcs_africana_raiders <- ggplot(africana, aes(x = Axis.1, y = Axis.2, color = Raider)) + geom_point()
+pcs_africana_sex
+pcs_africana_habitat
+pcs_africana_raiders
+
+species_pcoa$values$Broken_stick
+
+?qiimer
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

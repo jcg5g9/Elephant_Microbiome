@@ -1,0 +1,196 @@
+"column 1"	"Ontology - parents of class"	"Ontology - parents of class"	"Super-Pathways"
+PWY-7111	Alcohol-Biosynthesis // Pyruvate-Degradation	Alcohol-Biosynthesis // Pyruvate-Degradation	
+PWY-7663	Unsaturated-Fatty-Acids-Biosynthesis	Unsaturated-Fatty-Acids-Biosynthesis	
+PWY0-1319	CDP-diacylglycerol-Biosynthesis	CDP-diacylglycerol-Biosynthesis	PHOSLIPSYN2-PWY // PWY4FS-7 // PHOSLIPSYN-PWY
+PWY-5667	CDP-diacylglycerol-Biosynthesis	CDP-diacylglycerol-Biosynthesis	PHOSLIPSYN2-PWY // PWY4FS-8 // PHOSLIPSYN-PWY
+PHOSLIPSYN-PWY	Phospholipid-Biosynthesis // Super-Pathways	Phospholipid-Biosynthesis // Super-Pathways	
+PWY-5101	ISOLEUCINE-SYN	ISOLEUCINE-SYN	
+THRESYN-PWY	Super-Pathways // THREONINE-BIOSYNTHESIS	Super-Pathways // THREONINE-BIOSYNTHESIS	P4-PWY
+ILEUSYN-PWY	ISOLEUCINE-SYN	ISOLEUCINE-SYN	PWY-3001 // THREOCAT-PWY // BRANCHED-CHAIN-AA-SYN-PWY
+VALSYN-PWY	VALINE-BIOSYNTHESIS	VALINE-BIOSYNTHESIS	BRANCHED-CHAIN-AA-SYN-PWY
+PWY4FS-7	PhosphatidylglycerolBiosynthesis // Super-Pathways	PhosphatidylglycerolBiosynthesis // Super-Pathways	PHOSLIPSYN2-PWY
+PWY4FS-8	PhosphatidylglycerolBiosynthesis // Super-Pathways	PhosphatidylglycerolBiosynthesis // Super-Pathways	PHOSLIPSYN2-PWY
+PWY-3001	ISOLEUCINE-SYN // Super-Pathways	ISOLEUCINE-SYN // Super-Pathways	
+RIBOSYN2-PWY	Flavin-Biosynthesis	Flavin-Biosynthesis	
+PWY-7208	Pyrimidine-Nucleotide-Salvage // Super-Pathways	Pyrimidine-Nucleotide-Salvage // Super-Pathways	
+SER-GLYSYN-PWY	Amino-Acid-Biosynthesis // Super-Pathways	Amino-Acid-Biosynthesis // Super-Pathways	
+BRANCHED-CHAIN-AA-SYN-PWY	Amino-Acid-Biosynthesis // Super-Pathways	Amino-Acid-Biosynthesis // Super-Pathways	
+COMPLETE-ARO-PWY	Amino-Acid-Biosynthesis // Super-Pathways	Amino-Acid-Biosynthesis // Super-Pathways	ALL-CHORISMATE-PWY
+NONOXIPENT-PWY	Pentose-Phosphate-Cycle	Pentose-Phosphate-Cycle	PENTOSE-P-PWY
+PWY-6121	AIR-Biosynthesis	AIR-Biosynthesis	PWY-841 // PWY-6277
+ARO-PWY	Chorismate-Biosynthesis // Super-Pathways	Chorismate-Biosynthesis // Super-Pathways	PWY-6629 // PWY-6630 // PWY-6628 // COMPLETE-ARO-PWY
+PWY-6163	Chorismate-Biosynthesis	Chorismate-Biosynthesis	ARO-PWY // PWY-6165
+PWY-5103	ISOLEUCINE-SYN	ISOLEUCINE-SYN	
+PWY-2942	LYSINE-SYN	LYSINE-SYN	
+PWY-6277	AIR-Biosynthesis // Super-Pathways	AIR-Biosynthesis // Super-Pathways	
+PWY-6122	AIR-Biosynthesis	AIR-Biosynthesis	DENOVOPURINE2-PWY // PWY-6277
+PWY-6387	Acetylmuramoyl-Pentapeptide-Biosynthesis	Acetylmuramoyl-Pentapeptide-Biosynthesis	PEPTIDOGLYCANSYN-PWY // PWY-6385
+PWY-7219	Purine-Ribonuc-De-Novo-Biosynthesis	Purine-Ribonuc-De-Novo-Biosynthesis	PWY66-409 // PWY-7229 // PWY-841 // PWY-6126
+TRPSYN-PWY	TRYPTOPHAN-BIOSYNTHESIS	TRYPTOPHAN-BIOSYNTHESIS	PWY-6629 // COMPLETE-ARO-PWY
+PEPTIDOGLYCANSYN-PWY	Peptidoglycan-Biosynthesis // Super-Pathways	Peptidoglycan-Biosynthesis // Super-Pathways	
+PWY-6123	IMP-Biosynthesis	IMP-Biosynthesis	DENOVOPURINE2-PWY
+PWY-7221	Purine-Ribonuc-De-Novo-Biosynthesis	Purine-Ribonuc-De-Novo-Biosynthesis	PWY66-409 // PWY-841 // PWY-7228 // PWY-6125
+COA-PWY	CoA-Biosynthesis	CoA-Biosynthesis	PANTOSYN-PWY
+GLUTORN-PWY	L-Ornithine-Biosynthesis	L-Ornithine-Biosynthesis	ARGSYN-PWY
+HISTSYN-PWY	HISTIDINE-SYN	HISTIDINE-SYN	PRPP-PWY
+PWY-7229	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	
+PWY-5686	UMP-Biosynthesis	UMP-Biosynthesis	PWY-7211 // PWY0-162
+PWY-6126	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	DENOVOPURINE2-PWY
+PWY-7220	Adenosine-Deoxy-Denovo-Bbiosynthesis	Adenosine-Deoxy-Denovo-Bbiosynthesis	PWY-6126
+PWY-7222	Guanosine-Deoxy-Denovo-Biosynthesis	Guanosine-Deoxy-Denovo-Biosynthesis	PWY-6125
+PWY-5973	Unsaturated-Fatty-Acids-Biosynthesis	Unsaturated-Fatty-Acids-Biosynthesis	PWY-6285 // PWY-6284
+PWY-6386	Acetylmuramoyl-Pentapeptide-Biosynthesis	Acetylmuramoyl-Pentapeptide-Biosynthesis	PWY-6471 // PWY-5265 // PWY-6470
+PWY-6385	Peptidoglycan-Biosynthesis // Super-Pathways	Peptidoglycan-Biosynthesis // Super-Pathways	
+CALVIN-PWY	Autotrophic-CO2-Fixation // CARBO-BIOSYNTHESIS // Photosynthesis	Autotrophic-CO2-Fixation // CARBO-BIOSYNTHESIS // Photosynthesis	PWY-7218 // PWY-6886 // PHOTOALL-PWY
+1CMET2-PWY	Folate-Biosynthesis	Folate-Biosynthesis	
+NONMEVIPP-PWY	MEP-Pathways	MEP-Pathways	PWY-7156 // PWY-7392 // PWY-6270 // PWY-5121
+PWY-7560	MEP-Pathways	MEP-Pathways	
+PWY-5097	LYSINE-SYN	LYSINE-SYN	PWY-724
+PWY-841	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	
+PWY-3781	AEROBIC-RESPIRATION // Electron-Transfer	AEROBIC-RESPIRATION // Electron-Transfer	
+PWY0-162	Pyrimid-Ribonucleot-De-Novo-Biosyn // Super-Pathways	Pyrimid-Ribonucleot-De-Novo-Biosyn // Super-Pathways	PRPP-PWY // PWY-7211
+PWY-6125	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	DENOVOPURINE2-PWY
+PWY-7228	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	
+PWY-7197	Metabolic-Clusters // Pyrimidine-Nucleotide-Salvage	Metabolic-Clusters // Pyrimidine-Nucleotide-Salvage	PWY-7200
+PANTO-PWY	Pantothenate-Biosynthesis	Pantothenate-Biosynthesis	PWY-4221 // PANTOSYN-PWY
+ARGSYNBSUB-PWY	ARGININE-SYN	ARGININE-SYN	
+PANTOSYN-PWY	CoA-Biosynthesis // Super-Pathways // Vitamin-Biosynthesis	CoA-Biosynthesis // Super-Pathways // Vitamin-Biosynthesis	
+TRNA-CHARGING-PWY	Aminoacyl-tRNAs-Charging // Metabolic-Clusters	Aminoacyl-tRNAs-Charging // Metabolic-Clusters	
+TCA	TCA-VARIANTS	TCA-VARIANTS	TCA-GLYOX-BYPASS
+DTDPRHAMSYN-PWY	dTDP-Sugar-Biosynthesis	dTDP-Sugar-Biosynthesis	PWY-7317 // PWY-6404 // OANTIGEN-PWY
+PWY-5913	TCA-VARIANTS	TCA-VARIANTS	
+ANAGLYCOLYSIS-PWY	GLYCOLYSIS-VARIANTS	GLYCOLYSIS-VARIANTS	ANAEROFRUCAT-PWY
+PWY-5695	Purine-Degradation	Purine-Degradation	URSIN-PWY // PWY-6353
+PWY-6609	Adenine-Adenosine-Salvage	Adenine-Adenosine-Salvage	
+PWY-6969	TCA-VARIANTS	TCA-VARIANTS	
+PWY-5659	GDP-Sugar-Biosynthesis	GDP-Sugar-Biosynthesis	COLANSYN-PWY // PWY-7323
+PWY-5121	DITERPENOID-SYN // GGPP-Biosynthesis // Super-Pathways	DITERPENOID-SYN // GGPP-Biosynthesis // Super-Pathways	
+PWY-7400	ARGININE-SYN	ARGININE-SYN	
+ARGSYN-PWY	ARGININE-SYN // Super-Pathways	ARGININE-SYN // Super-Pathways	ARG+POLYAMINE-SYN
+PWY-6700	Nucleic-Acid-Processing	Nucleic-Acid-Processing	
+PWY-5189	Tetrapyrrole-Biosynthesis	Tetrapyrrole-Biosynthesis	PWY-5529 // PWY-5920
+PWY-5188	Tetrapyrrole-Biosynthesis	Tetrapyrrole-Biosynthesis	PWY-5507 // P381-PWY // PWY-5918
+COBALSYN-PWY	B12-Salvage-From-Cobinamide // Super-Pathways	B12-Salvage-From-Cobinamide // Super-Pathways	
+REDCITCYC	TCA-VARIANTS	TCA-VARIANTS	
+PWY0-166	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn // Super-Pathways	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn // Super-Pathways	
+PWY-7184	Metabolic-Clusters // Pyrimid-Deoxyribonucleot-De-Novo-Biosyn	Metabolic-Clusters // Pyrimid-Deoxyribonucleot-De-Novo-Biosyn	PWY-7211 // PWY0-166
+PWY-7196	Pyrimidine-Nucleotide-Salvage // Super-Pathways	Pyrimidine-Nucleotide-Salvage // Super-Pathways	
+PWY-7539	6-HM-Dihydropterin-PP-Biosynthesis	6-HM-Dihydropterin-PP-Biosynthesis	
+PWY-6147	6-HM-Dihydropterin-PP-Biosynthesis	6-HM-Dihydropterin-PP-Biosynthesis	PWY-6612
+PWY-5104	ISOLEUCINE-SYN	ISOLEUCINE-SYN	
+UDPNAGSYN-PWY	UDP-NAc-Glucosamine-Biosynthesis	UDP-NAc-Glucosamine-Biosynthesis	PWY-7332 // PWY-6404 // OANTIGEN-PWY
+PWY-5100	Pyruvate-Acetate-Fermentation // Pyruvate-Lactate-Fermentation // Super-Pathways	Pyruvate-Acetate-Fermentation // Pyruvate-Lactate-Fermentation // Super-Pathways	
+FASYN-ELONG-PWY	Fatty-acid-biosynthesis	Fatty-acid-biosynthesis	PWY0-881
+PYRIDNUCSYN-PWY	NAD-SYN	NAD-SYN	PWY0-781
+GLYCOGENSYNTH-PWY	GLYCOGEN-BIOSYN	GLYCOGEN-BIOSYN	
+P42-PWY	Reductive-TCA-Cycles	Reductive-TCA-Cycles	PWY-6146
+PWY-6737	Starch-Degradation	Starch-Degradation	
+PWY0-1586	Peptidoglycan-Biosynthesis	Peptidoglycan-Biosynthesis	
+GLYCOCAT-PWY	Glycan-Degradation // Glycogen-Degradation	Glycan-Degradation // Glycogen-Degradation	
+PWY-6897	Super-Pathways // Thiamin-Salvage	Super-Pathways // Thiamin-Salvage	
+PWY-7664	Oleate-Biosynthesis	Oleate-Biosynthesis	
+PWY-5989	Stearate-Biosynthesis	Stearate-Biosynthesis	PWY-6113 // PWY-5156
+PWY-6282	Palmitoleate-Biosynthesis	Palmitoleate-Biosynthesis	PWY-6285 // PWY-6284
+PWY0-862	5Z-Dodec-5-enoate-Biosynthesis	5Z-Dodec-5-enoate-Biosynthesis	PWY0-881 // PWY-6285 // PWY-6284
+PWY-7254	TCA-VARIANTS	TCA-VARIANTS	
+DENOVOPURINE2-PWY	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	Purine-Nucleotide-De-Novo-Biosynthesis // Super-Pathways	PRPP-PWY
+HEMESYN2-PWY	Heme-b-Biosynthesis	Heme-b-Biosynthesis	PWY0-1415
+POLYISOPRENSYN-PWY	Polyprenyl-Biosynthesis // Super-Pathways	Polyprenyl-Biosynthesis // Super-Pathways	
+ASPASN-PWY	Amino-Acid-Biosynthesis // Metabolic-Clusters // Super-Pathways	Amino-Acid-Biosynthesis // Metabolic-Clusters // Super-Pathways	
+PWY-5484	GLYCOLYSIS-VARIANTS	GLYCOLYSIS-VARIANTS	HEXITOLDEGSUPER-PWY // P441-PWY // P461-PWY // PWY-7345
+FAO-PWY	Fatty-Acid-Degradation	Fatty-Acid-Degradation	
+PWY-6269	B12-Salvage-From-Cobinamide // Super-Pathways	B12-Salvage-From-Cobinamide // Super-Pathways	
+FASYN-INITIAL-PWY	Fatty-acid-biosynthesis // Super-Pathways	Fatty-acid-biosynthesis // Super-Pathways	PWY0-881
+DAPLYSINESYN-PWY	LYSINE-SYN	LYSINE-SYN	P4-PWY
+PWY-5509	Adenosylcobamide-Biosynthesis	Adenosylcobamide-Biosynthesis	PWY-5507 // P381-PWY // PWY-6269 // COBALSYN-PWY
+PWY-6151	S-adenosyl-L-methionine-cycle // Super-Pathways	S-adenosyl-L-methionine-cycle // Super-Pathways	
+PWY-7094	Fatty-acid-biosynthesis	Fatty-acid-biosynthesis	
+PROTOCATECHUATE-ORTHO-CLEAVAGE-PWY	Protocatechuate-Degradation	Protocatechuate-Degradation	PWY-5181 // PWY-2504 // PWY-5431
+PWY-7234	IMP-Biosynthesis	IMP-Biosynthesis	
+HSERMETANA-PWY	Methionine-De-novo-Biosynthesis // Super-Pathways	Methionine-De-novo-Biosynthesis // Super-Pathways	PWY-5345
+FOLSYN-PWY	Folate-Biosynthesis // Super-Pathways	Folate-Biosynthesis // Super-Pathways	
+PWY-7187	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn	PWY0-166
+PWY-6612	Folate-Biosynthesis // Super-Pathways	Folate-Biosynthesis // Super-Pathways	ALL-CHORISMATE-PWY // FOLSYN-PWY
+PWY-6467	KDO-Lipid-IV-Transfer // Super-Pathways	KDO-Lipid-IV-Transfer // Super-Pathways	
+NAGLIPASYN-PWY	Lipid-Biosynthesis // Lipopolysaccharide-Biosynthesis	Lipid-Biosynthesis // Lipopolysaccharide-Biosynthesis	LPSSYN-PWY // KDO-NAGLIPASYN-PWY
+PWY-1269	CMP-KDO-Biosynthesis // CMP-Sugar-Biosynthesis	CMP-KDO-Biosynthesis // CMP-Sugar-Biosynthesis	LPSSYN-PWY // KDO-NAGLIPASYN-PWY
+PWY-7200	Pyrimidine-Nucleotide-Salvage // Super-Pathways	Pyrimidine-Nucleotide-Salvage // Super-Pathways	
+PWY-7199	Pyrimidine-Nucleotide-Salvage	Pyrimidine-Nucleotide-Salvage	PWY-7200
+SULFATE-CYS-PWY	Sulfur-Metabolism // Super-Pathways	Sulfur-Metabolism // Super-Pathways	
+SO4ASSIM-PWY	Assimilatory-Sulfate-Reduction // Super-Pathways	Assimilatory-Sulfate-Reduction // Super-Pathways	PWY-821 // SULFATE-CYS-PWY // PWY-5345
+P221-PWY	Other-Degradation	Other-Degradation	
+HISDEG-PWY	HISTIDINE-DEG	HISTIDINE-DEG	
+HEME-BIOSYNTHESIS-II	Heme-b-Biosynthesis	Heme-b-Biosynthesis	PWY-5920 // PWY-5918
+PWYG-321	Fatty-acid-biosynthesis	Fatty-acid-biosynthesis	PWY-6113
+OANTIGEN-PWY	Metabolic-Clusters // SUGAR-NUCLEOTIDES // Super-Pathways	Metabolic-Clusters // SUGAR-NUCLEOTIDES // Super-Pathways	
+BC-1.3.1	BC-1.3	BC-1.3	
+PWY-4984	NITROGEN-DEG	NITROGEN-DEG	PWY-5004
+PWY-7242	SUGAR-ACIDS-DEG	SUGAR-ACIDS-DEG	GLUCUROCAT-PWY
+PWY-5415	Catechol-Degradation // Super-Pathways	Catechol-Degradation // Super-Pathways	PWY-6957 // PWY-6956 // PWY-5430
+PWY-5180	Super-Pathways // TOLUENE-DEG	Super-Pathways // TOLUENE-DEG	PWY-5183
+PWY-5182	Super-Pathways // TOLUENE-DEG	Super-Pathways // TOLUENE-DEG	PWY-5183
+PWY-5918	Heme-b-Biosynthesis // Super-Pathways	Heme-b-Biosynthesis // Super-Pathways	
+PWY-6708	Ubiquinone-Biosynthesis	Ubiquinone-Biosynthesis	UBISYN-PWY
+PWY-5857	Ubiquinone-Biosynthesis	Ubiquinone-Biosynthesis	
+PWY-5856	Ubiquinone-Biosynthesis	Ubiquinone-Biosynthesis	
+PWY-5855	Ubiquinone-Biosynthesis	Ubiquinone-Biosynthesis	
+P105-PWY	TCA-VARIANTS	TCA-VARIANTS	
+TCA-GLYOX-BYPASS	Super-Pathways // TCA-VARIANTS	Super-Pathways // TCA-VARIANTS	GLYCOLYSIS-TCA-GLYOX-BYPASS
+PWY-7323	GDP-Sugar-Biosynthesis // Super-Pathways	GDP-Sugar-Biosynthesis // Super-Pathways	
+BC-1.7.2	BC-1.7	BC-1.7	
+PWY-6703	SECONDARY-METABOLITE-BIOSYNTHESIS	SECONDARY-METABOLITE-BIOSYNTHESIS	
+PWY-5345	Methionine-De-novo-Biosynthesis // Super-Pathways	Methionine-De-novo-Biosynthesis // Super-Pathways	
+PWY-6608	Guanosine-Nucleotides-Degradation	Guanosine-Nucleotides-Degradation	PWY-6353
+P161-PWY	Acetate-Formation // Pyruvate-Ethanol-Fermentation	Acetate-Formation // Pyruvate-Ethanol-Fermentation	
+SALVADEHYPOX-PWY	Adenosine-Nucleotides-Degradation	Adenosine-Nucleotides-Degradation	PWY-6353
+PWY-5505	GLUTAMATE-SYN // GLUTAMINE-SYN // Metabolic-Clusters // Super-Pathways	GLUTAMATE-SYN // GLUTAMINE-SYN // Metabolic-Clusters // Super-Pathways	
+LEU-DEG2-PWY	LEUCINE-DEG	LEUCINE-DEG	
+GLUCONEO-PWY	Gluconeogenesis	Gluconeogenesis	
+P125-PWY	Butanediol-Biosynthesis // Super-Pathways	Butanediol-Biosynthesis // Super-Pathways	
+GLYCOLYSIS-TCA-GLYOX-BYPASS	Energy-Metabolism // Super-Pathways	Energy-Metabolism // Super-Pathways	
+P108-PWY	Pyruvate-Propanoate-Fermentation	Pyruvate-Propanoate-Fermentation	PWY-5088
+PWY-6471	Antibiotic-Resistance // Peptidoglycan-Biosynthesis // Super-Pathways	Antibiotic-Resistance // Peptidoglycan-Biosynthesis // Super-Pathways	
+PWY-7211	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn // Super-Pathways	Pyrimid-Deoxyribonucleot-De-Novo-Biosyn // Super-Pathways	
+PWY0-845	Super-Pathways // Vitamin-B6-Biosynthesis	Super-Pathways // Vitamin-B6-Biosynthesis	
+PYRIDOXSYN-PWY	Vitamin-B6-Biosynthesis	Vitamin-B6-Biosynthesis	PWY0-845
+PYRIDNUCSAL-PWY	NAD-SYN	NAD-SYN	
+PWY-5747	Methyl-Citrate-Cycle	Methyl-Citrate-Cycle	
+FERMENTATION-PWY	Fermentation-to-Acids // Pyruvate-Ethanol-Fermentation	Fermentation-to-Acids // Pyruvate-Ethanol-Fermentation	
+PWY-5920	Heme-b-Biosynthesis // Super-Pathways	Heme-b-Biosynthesis // Super-Pathways	
+PWY0-1415	Heme-b-Biosynthesis // Super-Pathways	Heme-b-Biosynthesis // Super-Pathways	
+PWY0-1298	Pyrimidine-Degradation // Super-Pathways	Pyrimidine-Degradation // Super-Pathways	
+BIOTIN-BIOSYNTHESIS-PWY	BIOTIN-SYN // Super-Pathways	BIOTIN-SYN // Super-Pathways	
+PWY-6519	7-Keto-8-aminopelargonate-Biosynthesis	7-Keto-8-aminopelargonate-Biosynthesis	BIOTIN-BIOSYNTHESIS-PWY
+PWY-6630	Super-Pathways // TYROSINE-SYN	Super-Pathways // TYROSINE-SYN	
+PWY-6628	PHENYLALANINE-SYN // Super-Pathways	PHENYLALANINE-SYN // Super-Pathways	
+PWY0-781	Super-Pathways	Super-Pathways	
+P4-PWY	Amino-Acid-Biosynthesis // Super-Pathways	Amino-Acid-Biosynthesis // Super-Pathways	PWY0-781
+ANAEROFRUCAT-PWY	Fermentation-to-Lactate // Super-Pathways	Fermentation-to-Lactate // Super-Pathways	
+CATECHOL-ORTHO-CLEAVAGE-PWY	Catechol-Degradation	Catechol-Degradation	PWY-2504 // PWY-5431 // PWY-6182 // PWY-5417
+PWY0-1061	ALANINE-SYN // Super-Pathways	ALANINE-SYN // Super-Pathways	
+PWY-5347	Methionine-De-novo-Biosynthesis // Super-Pathways	Methionine-De-novo-Biosynthesis // Super-Pathways	
+MET-SAM-PWY	Super-Pathways	Super-Pathways	
+PPGPPMET-PWY	Metabolic-Regulators	Metabolic-Regulators	
+NAD-BIOSYNTHESIS-II	NAD-SYN	NAD-SYN	
+PWY-5417	Catechol-Degradation // Super-Pathways	Catechol-Degradation // Super-Pathways	PWY-6957
+PWY-5431	Catechol-Degradation // Super-Pathways	Catechol-Degradation // Super-Pathways	
+UBISYN-PWY	Super-Pathways // Ubiquinone-Biosynthesis	Super-Pathways // Ubiquinone-Biosynthesis	ALL-CHORISMATE-PWY
+HOMOSER-METSYN-PWY	Methionine-De-novo-Biosynthesis	Methionine-De-novo-Biosynthesis	METSYN-PWY // PWY-5347 // P4-PWY
+PWY-6562	Polyamine-Biosynthesis	Polyamine-Biosynthesis	PWY-6565
+PWY-6396	Butanediol-Biosynthesis // Super-Pathways	Butanediol-Biosynthesis // Super-Pathways	
+TYRFUMCAT-PWY	TYROSINE-DEG	TYROSINE-DEG	
+AST-PWY	ARGININE-DEG	ARGININE-DEG	
+PWY-6507	Sugar-Derivatives	Sugar-Derivatives	PWY-6516
+PWY-6470	Antibiotic-Resistance // Peptidoglycan-Biosynthesis // Super-Pathways	Antibiotic-Resistance // Peptidoglycan-Biosynthesis // Super-Pathways	
+PWY0-1261	Anhydromuropeptides-Recycling	Anhydromuropeptides-Recycling	
+PWY0-1296	Purine-Degradation	Purine-Degradation	
+PWY-5897	Menaquinone-Biosynthesis // Super-Pathways	Menaquinone-Biosynthesis // Super-Pathways	
+PWY0-1297	NUCLEO-DEG // Super-Pathways	NUCLEO-DEG // Super-Pathways	
+PWY-5898	Menaquinone-Biosynthesis // Super-Pathways	Menaquinone-Biosynthesis // Super-Pathways	
+PWY-5863	Phylloquinone-Biosynthesis // Super-Pathways	Phylloquinone-Biosynthesis // Super-Pathways	
+PWY-5861	Demethylmenaquinol-8-Biosynthesis // Super-Pathways	Demethylmenaquinol-8-Biosynthesis // Super-Pathways	
+PWY-5840	Menaquinone-Biosynthesis // Super-Pathways	Menaquinone-Biosynthesis // Super-Pathways	
+PWY-5838	Menaquinone-Biosynthesis // Super-Pathways	Menaquinone-Biosynthesis // Super-Pathways	
+PWY-5837	DHNA-Biosynthesis	DHNA-Biosynthesis	PWY-5863 // ALL-CHORISMATE-PWY // PWY-5861 // PWY-5899 // PWY-5898 // PWY-5897 // PWY-5896 // PWY-5838 // PWY-5862 // PWY-5860 // PWY-5845 // PWY-5840 // PWY-5850
+PWY-5022	4-Aminobutyraye-Degradation // Acetyl-CoA-Butyrate	4-Aminobutyraye-Degradation // Acetyl-CoA-Butyrate	
+PWY-5899	Menaquinone-Biosynthesis // Super-Pathways	Menaquinone-Biosynthesis // Super-Pathways	

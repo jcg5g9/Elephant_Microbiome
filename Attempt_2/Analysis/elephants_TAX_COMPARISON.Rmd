@@ -1,0 +1,198 @@
+---
+title: "elephants_TAX_COMPARISON"
+author: "Joe Gunn"
+date: "8/13/2019"
+output: html_document
+---
+
+# AFRICAN ELEPHANT MICROBIOME - TAXONOMIC COMPARISON
+
+Purpose: Here we are comparing the taxonomic composition of African Elephant species to other mammalian taxa using data extracted from Ley et al. (2009) 
+
+## Libraries needed for analysis
+```{r libraries, ECHO = FALSE, include = FALSE}
+
+library(readxl)
+library(cowplot)
+library(tidyverse)
+library(qiime2R)
+library(vegan)
+library(devtools)
+library(DescTools)
+library(factoextra)
+library(ade4)
+library(lme4)
+library(nlme)
+library(ggrepel)
+library(GGally)
+library(lattice)
+library(epiDisplay)
+library(multcomp)
+library(taRifx)
+library(ape)
+library(openxlsx)
+library(multcomp)
+library(phyloseq)
+library(lmerTest)
+```
+
+## Metadata
+```{r Metadata, include = FALSE}
+##Read in the metadata, which includes all labels and covariates associated with each individual in the data set. Metadata includes individual sample ID (index), barcode sequence, linker primer sequence, species (africana or cyclotis), diet (crop raider or non-crop raider), habitat (forest or savanna), age, sex, and group (a descriptor for each unique combination of species-diet-habitat)
+
+metadata <- read_tsv("../data/metadata/METADATA.tsv") #metadata read in
+
+metadata <- metadata %>% as.data.frame() %>% mutate(BarcodeSequence = factor(BarcodeSequence), LinkerPrimerSequence = factor(LinkerPrimerSequence), Species = factor(Species), Raider = factor(Raider), Habitat = factor(Habitat), Age = factor(Age), Sex = factor(Sex), Elephant = factor(Elephant), Group = factor(Group), Description = factor(Description)) #convert table to data frame and convert all characters, except for sample id, into factors
+colnames(metadata)[colnames(metadata) == "Sample-id"] <- "sample_id" 
+```
+
+## Principal coordinate analysis for multi-taxa comparison
+```{r}
+
+#Re-calculating raw abundance values from proportion data
+gut_props <- read_excel("../data/excel_data/tax_comparison/Species_Gut_Microbiome_Comparison.xlsx")
+
+gut_abun <- read_excel("../data/excel_data/tax_comparison/gut_abun.xlsx")
+gut_abun <- as.data.frame(gut_abun)
+gut_meta <- as.data.frame(gut_abun[,c(1:11)])
+gut_abun <- gut_abun[,c(1,12:21)]
+gut_abun <- column_to_rownames(gut_abun, "common_name")
+gut_abun <- as.matrix(gut_abun)
+
+veg_standard <- decostand(gut_abun, method = "total")
+veg_gut <- vegdist(gut_abun, "bray")
+
+pcoa_gut <- pcoa(veg_gut)
+
+gut_pcs <- pcoa_gut$vectors
+gut_pcs <- as.data.frame(gut_pcs)
+gut_pcs <- gut_pcs %>% 
+  rownames_to_column("common_name")
+
+gut_pcs <- merge(gut_meta, gut_pcs, by = "common_name")
+
+ggplot(gut_pcs, aes(x = Axis.1, y = Axis.2, color = genus_species)) + 
+  geom_point()
+
+
+#PCOA FOR DIGESTION (all data)
+
+#Prepare data for Principal coordinate analysis
+digestion <- read_excel("../data/excel_data/tax_comparison/digestionmodels.xlsx")
+digestion <- as.data.frame(digestion)
+digestion_meta <- as.data.frame(digestion[,c(1:4)])
+digestion <- digestion[,c(1,5:15)]
+digestion <- column_to_rownames(digestion, "taxa")
+digestion <- as.matrix(digestion)
+
+####Analysis###############################
+veg_dig <- vegdist(digestion, "bray")
+pcoa_dig <- pcoa(veg_dig)
+###########################################
+
+#Prepare data for visualizing
+dig_pcs <- pcoa_dig$vectors
+dig_pcs <- as.data.frame(dig_pcs)
+dig_pcs <- dig_pcs %>% 
+  rownames_to_column("taxa")
+
+dig_pcs <- merge(digestion_meta, dig_pcs, by = "taxa")
+
+
+#NMDS FOR DIGESTION (all data)
+
+####Run NMDS##############################################
+dig_nmds <- isoMDS(veg_dig, trace = 0)
+dig_nmds_use <- metaMDS(digestion)
+score_dig <- scores(dig_nmds_use)
+score_dig<- as.data.frame(score_dig)
+score_dig <- score_dig %>% 
+  rownames_to_column("taxa")
+
+merge_dig <- merge(digestion_meta, score_dig, by = "taxa")
+############################################################
+
+
+#PCOA FOR DIGESTION (just top 3 taxa)
+
+####Analysis##############################################
+digestion_top3 <- digestion[,c(1:3)]
+veg_top3 <- vegdist(digestion_top3, "bray")
+pcoa_top3 <- pcoa(veg_top3)
+top3_pcs <- pcoa_top3$vectors
+top3_pcs <- as.data.frame(top3_pcs)
+top3_pcs <- top3_pcs %>% rownames_to_column("taxa")
+top3_pcs <- merge(digestion_meta, top3_pcs, by = "taxa")
+############################################################
+
+#Make Figures
+
+pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/Attempt_2/dig_pcoa.pdf", width=10, height=7) 
+
+ggplot(dig_pcs, aes(x = Axis.1, y = Axis.2, color = digestion)) + 
+  geom_point(show.legend = T, size = 4) + 
+  labs(color = "Digestion Type") + 
+  labs(x = "PCoA Axis 1 (18.6 %)", y = "PCoA Axis 2 (13.4 %)") + 
+  theme(legend.position = c(0.1, 0.85)) + 
+  theme(axis.title = element_text(size = 20))
+
+dev.off()
+
+
+##################################################################################################################################
+#59 Species
+
+#PCOA FOR DIGESTION (all data)
+
+#Prepare data for Principal coordinate analysis
+multi_gut_top3 <- read_excel("../data/excel_data/tax_comparison/species_gut_top3_no_car.xlsx")
+multi_gut_top3 <- as.data.frame(multi_gut_top3)
+multi_gut_top3_meta <- as.data.frame(multi_gut_top3[,c(1:10)])
+multi_gut_top3 <- multi_gut_top3[,c(7,11:13)]
+multi_gut_top3 <- column_to_rownames(multi_gut_top3, "Common_name")
+multi_gut_top3 <- as.matrix(multi_gut_top3)
+
+
+
+
+####Analysis###############################
+veg_multi_top3 <- vegdist(multi_gut_top3, "bray")
+pcoa_multi_top3 <- pcoa(veg_multi_top3)
+###########################################
+
+options(scipen = 999)
+
+
+#Prepare data for visualizing
+multi_gut_top3_pcs <- pcoa_multi_top3$vectors
+multi_gut_top3_pcs <- as.data.frame(multi_gut_top3_pcs)
+multi_gut_top3_pcs <- multi_gut_top3_pcs %>% 
+  rownames_to_column("Common_name")
+
+multi_gut_top3_pcs <- merge(multi_gut_top3_meta, multi_gut_top3_pcs, by = "Common_name")
+
+
+gut_nmds <- isoMDS(veg_multi_top3, trace = T) #omitted Dairy Cow 2
+gut_nmds_use <- metaMDS(multi_gut_top3)
+score_gut <- scores(gut_nmds_use)
+score_gut <- as.data.frame(score_gut)
+score_gut <- score_gut %>% 
+  rownames_to_column("Common_name")
+
+merge_gut <- merge(multi_gut_top3_meta, score_gut, by = "Common_name")
+
+
+#Make Figures
+
+pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/Attempt_2/dig_pcoa.pdf", width=10, height=6) 
+
+ggplot(multi_gut_top3_pcs, aes(x = Axis.1, y = Axis.2, color = Feeding_Strategy)) + 
+  geom_point(show.legend = T) + 
+  labs(x = "PCoA Axis 1 (4.6 %)", y = "PCoA Axis 2 (3.8 %)")
+
+##geom_text(aes(label = Species), show.legend = T, angle = 30, hjust = 0, vjust = 0, nudge_y = -0.001, nudge_x = 0.01, check_overlap = F, size = 2.5) + labs(color = "Digestion Type") + 
+
+dev.off()
+```
+
+

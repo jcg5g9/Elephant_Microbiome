@@ -1,0 +1,196 @@
+pathway,Level1,Level2,Level3
+PWY-7111,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Alcohols
+PWY-7663,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY0-1319,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Phospholipid Biosynthesis
+PWY-5667,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Phospholipid Biosynthesis
+PHOSLIPSYN-PWY,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Phospholipid Biosynthesis
+PWY-5101,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+THRESYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+ILEUSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+VALSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY4FS-7,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Phospholipid Biosynthesis
+PWY4FS-8,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Phospholipid Biosynthesis
+PWY-3001,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+RIBOSYN2-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-7208,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+SER-GLYSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Amino Acid Biosynthesis
+BRANCHED-CHAIN-AA-SYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Amino Acid Biosynthesis
+COMPLETE-ARO-PWY,Biosynthesis,Amino Acid Biosynthesis,Amino Acid Biosynthesis
+NONOXIPENT-PWY,Generation of Precursor Metabolite and Energy,Pentose Phosphate Pathways,Pentose Phosphate Pathways
+PWY-6121,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+ARO-PWY,Biosynthesis,Aromatic Compound Biosynthesis,Chorismate Biosynthesis
+PWY-6163,Biosynthesis,Aromatic Compound Biosynthesis,Chorismate Biosynthesis
+PWY-5103,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+PWY-2942,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+PWY-6277,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-6122,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-6387,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis
+PWY-7219,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+TRPSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+PEPTIDOGLYCANSYN-PWY,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis
+PWY-6123,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-7221,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+COA-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Coenzyme A Biosynthesis
+GLUTORN-PWY,Biosynthesis,Amino Acid Biosynthesis,Other Amino Acid Biosynthesis
+HISTSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-7229,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-5686,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine
+PWY-6126,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-7220,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY-7222,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY-5973,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY-6386,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis
+PWY-6385,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis
+CALVIN-PWY,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+1CMET2-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+NONMEVIPP-PWY,Biosynthesis,Secondary Metabolite Biosynthesis,Terpenoid Biosynthesis 
+PWY-7560,Biosynthesis,Secondary Metabolite Biosynthesis,Terpenoid Biosynthesis 
+PWY-5097,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-841,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide Biosynthesis
+PWY-3781,Generation of Precursor Metabolite and Energy,Respiration,Aerobic Respiration
+PWY0-162,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+PWY-6125,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-7228,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-7197,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+PANTO-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+ARGSYNBSUB-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+PANTOSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Coenzyme A Biosynthesis
+TRNA-CHARGING-PWY,Biosynthesis,Aminoacyl-tRNA Charging,Aminoacyl-tRNA Charging
+TCA,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+DTDPRHAMSYN-PWY,Biosynthesis  , Carbohydrate Biosynthesis  , Sugar Biosynthesis  
+PWY-5913,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+ANAGLYCOLYSIS-PWY,Generation of Precursor Metabolite and Energy,Glycolysis,Glycolysis
+PWY-5695,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation ,Purine Nucleotide Degradation
+PWY-6609,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide
+PWY-6969,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+PWY-5659,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+PWY-5121,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Polyprenyl Biosynthesis
+PWY-7400,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+ARGSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid
+PWY-6700,Macromolecule Modification,Nucleic Acid Processing,Nucleic Acid Processing
+PWY-5189,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Tetrapyrrole Biosynthesis
+PWY-5188,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Tetrapyrrole Biosynthesis
+COBALSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+REDCITCYC,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+PWY0-166,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY-7184,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY-7196,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+PWY-7539,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-6147,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-5104,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+UDPNAGSYN-PWY,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+PWY-5100,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation of Pyruvate
+FASYN-ELONG-PWY,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PYRIDNUCSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,NAD Metabolism
+GLYCOGENSYNTH-PWY,Biosynthesis,Carbohydrate Biosynthesis,Glycan Biosynthesis
+P42-PWY,Degradation/Utilization/Assimilation,C1 Compound Utilization and Assimilation,CO2 Fixation
+PWY-6737,Degradation/Utilization/Assimilation,Carbohydrate Degradation,Polysaccharide Degradation
+PWY0-1586,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis
+GLYCOCAT-PWY,Degradation/Utilization/Assimilation,Carbohydrate Degradation,Polysaccharide Degradation
+PWY-6897,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-7664,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY-5989,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY-6282,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY0-862,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PWY-7254,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+DENOVOPURINE2-PWY,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide Biosynthesis
+HEMESYN2-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Porphyrin Compound Biosynthesis
+POLYISOPRENSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Polyprenyl Biosynthesis
+ASPASN-PWY,Biosynthesis,Amino Acid Biosynthesis,Amino Acid Biosynthesis
+PWY-5484,Generation of Precursor Metabolite and Energy,Glycolysis,Glycolysis
+FAO-PWY,Degradation/Utilization/Assimilation,Fatty Acid and Lipid Degradation,Fatty Acid Degradation
+PWY-6269,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+FASYN-INITIAL-PWY,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+DAPLYSINESYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-5509,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-6151,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-7094,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+PROTOCATECHUATE-ORTHO-CLEAVAGE-PWY,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Protocatechuate Degradation
+PWY-7234,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Purine Nucleotide Biosynthesis
+HSERMETANA-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+FOLSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-7187,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY-6612,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-6467,Biosynthesis,Cell Structure Biosynthesis,Lipopolysaccharide Biosynthesis
+NAGLIPASYN-PWY,Biosynthesis,Cell Structure Biosynthesis,Lipopolysaccharide Biosynthesis
+PWY-1269,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+PWY-7200,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+PWY-7199,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,Pyrimidine Nucleotide Biosynthesis
+SULFATE-CYS-PWY,Degradation/Utilization/Assimilation,Inorganic Nutrient Metabolism ,Sulfur Compound Metabolism
+SO4ASSIM-PWY,Degradation/Utilization/Assimilation,Inorganic Nutrient Metabolism ,Sulfur Compound Metabolism
+P221-PWY,Degradation/Utilization/Assimilation,Degradation/Utilization/Assimilation - Other,Degradation/Utilization/Assimilation - Other
+HISDEG-PWY,Degradation/Utilization/Assimilation,Amino Acid Degradation,Proteinogenic Amino Acid Degradation
+HEME-BIOSYNTHESIS-II,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Porphyrin Compound Biosynthesis
+PWYG-321,Biosynthesis,Fatty Acid and Lipid Biosynthesis,Fatty Acid Biosynthesis
+OANTIGEN-PWY,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+GLYCOLYSIS,Generation of Precursor Metabolite and Energy,Glycolysis,Glycolysis
+PWY-4984,Degradation/Utilization/Assimilation,Inorganic Nutrient Metabolism ,Nitrogen Compound Metabolism
+PWY-7242,Degradation/Utilization/Assimilation,Secondary Metabolite Degradation,Sugar Derivative Degradation
+PWY-5415,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Catechol Degradation
+PWY-5180,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Toluene Degradation
+PWY-5182,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Toluene Degradation
+PWY-5918,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Porphyrin Compound Biosynthesis
+PWY-6708,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5857,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5856,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5855,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+P105-PWY,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+TCA-GLYOX-BYPASS,Generation of Precursor Metabolite and Energy,TCA cycle,TCA cycle
+PWY-7323,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+GLYOXYLATE-BYPASS,Generation of Precursor Metabolite and Energy  , glyoxylate cycle, glyoxylate cycle
+PWY-6703,Biosynthesis,Secondary Metabolite Biosynthesis,Secondary Metabolite Biosynthesis
+PWY-5345,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-6608,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation,Purine Nucleotide Degradation
+P161-PWY,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation of Pyruvate
+SALVADEHYPOX-PWY,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation,Purine Nucleotide Degradation
+PWY-5505,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+LEU-DEG2-PWY,Degradation/Utilization/Assimilation,Amino Acid Degradation,Proteinogenic Amino Acid Degradation
+GLUCONEO-PWY,Biosynthesis,Carbohydrate Biosynthesis,Sugar Biosynthesis
+P125-PWY,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Alcohols
+GLYCOLYSIS-TCA-GLYOX-BYPASS,Generation of Precursor Metabolite and Energy  ,superpathway of glycolysis  pyruvate dehydrogenase  TCA  and glyoxylate bypass,superpathway of glycolysis  pyruvate dehydrogenase  TCA  and glyoxylate bypass
+P108-PWY,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Short-Chain Fatty Acids
+PWY-6471,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis 
+PWY-7211,Biosynthesis,Nucleoside and Nucleotide Biosynthesis,2'-Deoxyribonucleotide Biosynthesis
+PWY0-845,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PYRIDOXSYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PYRIDNUCSAL-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,NAD Metabolism
+PWY-5747,Degradation/Utilization/Assimilation,Carboxylate Degradation,Propanoate Degradation
+FERMENTATION-PWY,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation of Pyruvate
+PWY-5920,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Porphyrin Compound Biosynthesis
+PWY0-1415,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Porphyrin Compound Biosynthesis
+PWY0-1298,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation,Pyrimidine Nucleotide Degradation
+BIOTIN-BIOSYNTHESIS-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Vitamin Biosynthesis
+PWY-6519,Biosynthesis,Other Biosynthesis,8-Amino-7-oxononanoate Biosynthesis
+PWY-6630,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-6628,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY0-781,Superpathways  ,aspartate superpathway,aspartate superpathway
+P4-PWY,Biosynthesis,Amino Acid Biosynthesis,Amino Acid Biosynthesis
+ANAEROFRUCAT-PWY,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Short-Chain Fatty Acids
+CATECHOL-ORTHO-CLEAVAGE-PWY,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Catechol Degradation
+PWY0-1061,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-5347,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+MET-SAM-PWY,Superpathways  ,S-adenosyl-L-methionine biosynthesis,S-adenosyl-L-methionine biosynthesis
+PPGPPMET-PWY,Biosynthesis,Metabolic Regulator Biosynthesis,Metabolic Regulator Biosynthesis
+NAD-BIOSYNTHESIS-II,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,NAD Metabolism
+PWY-5417,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Catechol Degradation
+PWY-5431,Degradation/Utilization/Assimilation,Aromatic Compound Degradation,Catechol Degradation
+UBISYN-PWY,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+HOMOSER-METSYN-PWY,Biosynthesis,Amino Acid Biosynthesis,Proteinogenic Amino Acid Biosynthesis
+PWY-6562,Biosynthesis,Amine and Polyamine Biosynthesis,Amine and Polyamine Biosynthesis
+PWY-6396,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Alcohols
+TYRFUMCAT-PWY,Degradation/Utilization/Assimilation,Amino Acid Degradation,Proteinogenic Amino Acid Degradation
+AST-PWY,Degradation/Utilization/Assimilation,Amino Acid Degradation,Proteinogenic Amino Acid Degradation
+PWY-6507,Degradation/Utilization/Assimilation,Secondary Metabolite Degradation,Sugar Derivative Degradation
+PWY-6470,Biosynthesis,Cell Structure Biosynthesis,Cell Wall Biosynthesis 
+PWY0-1261,Degradation/Utilization/Assimilation,Secondary Metabolite Degradation,Sugar Derivative Degradation
+PWY0-1296,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation,Purine Nucleotide Degradation
+PWY-5897,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY0-1297,Degradation/Utilization/Assimilation,Nucleoside and Nucleotide Degradation,Nucleoside and Nucleotide Degradation
+PWY-5898,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5863,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5861,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5840,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5838,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5837,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
+PWY-5022,Generation of Precursor Metabolite and Energy,Fermentation,Fermentation to Short-Chain Fatty Acids
+PWY-5899,Biosynthesis,Cofactor  Prosthetic Group  Electron Carrier  and Vitamin Biosynthesis,Quinol and Quinone Biosynthesis
