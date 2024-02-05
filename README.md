@@ -1,7 +1,9 @@
 # Reproduce analyses for Budd & Gunn et al. 2020
 <font size="+1">Follow the steps listed below in the <b><i>Analyses</i></b> section to reproduce analyses for Budd & Gunn et al. (2020). Each step below gives a summary of the analysis and directs you to a general code file which then works through the analysis step-by-step. This general file will usually point you to other Rmd code, bash shell scripts, or python scripts. Each analysis is contained within sub-directories of the same name in the main R project directory.</font>
 
-Find the article here: <a href="url">https://onlinelibrary.wiley.com/doi/10.1002/ece3.6305</a> 
+Find the article here: <a href="url">https://onlinelibrary.wiley.com/doi/10.1002/ece3.6305</a>
+
+Citation here: Budd K, Gunn JC, Finch T, Klymus K, Sitati N, Eggert LS. Effects of diet, habitat, and phylogeny on the fecal microbiome of wild African savanna (<i>Loxodonta africana</i>) and forest elephants (<i>L. cyclotis</i>). Ecol Evol. 2020;10:5637–5650.
 
 ## Project: Population genomic analysis of Smallmouth Bass and Neosho Bass in the Central Interior Highlands
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
@@ -9,13 +11,13 @@ We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta a
 ## General information on repository structure
 This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Budd & Gunn et al. (2020). In the home directory of the repository (Elephant_Microbiome), you will find a README.md file (the source script for this information), the R Project file (Elephant_Microbiome.Rproj), a .gitignore file, and 7 different "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
 
-1) 01_map_analysis
-2) 02_filtering_processing_analysis
-3) 03_admixture_phylogenomics_analysis
-4) 04_population_analysis
-5) 05_admixture_mapping_analysis
-6) 06_outlier_fst_analysis
-7) 07_demographic_analysis
+1) 01_bioinformatic_analyses
+2) 02_
+3) 03_
+4) 04_
+5) 05_
+6) 06_
+7) 07_
 
 Within each analysis directory, you will find an R markdown script (.Rmd) with the name of the analysis, which contains all of the code needed to run the full analysis. Additionally, you will find one:
 
@@ -36,25 +38,13 @@ To reproduce all analyses in Budd & Gunn et al. (2020), download this repository
 Once all directories are downloaded, create a new sub-directory within the home directory (same level as the seven analysis directories, .Rproj, README.md, etc.) called "raw_data". This is where you will store the raw genomic data and associated sample metadata (see <i><b>Data</i></b> section below).
 
 ## Data
-Raw .fastq sequence files from ddRAD-seq and accompanying metadata are available at Zenodo.org: 
+Raw 16S rRNA sequence reads and accompanying metadata are available on NCBI: <a href="url">https://www.ncbi.nlm.nih.gov/bioproject/PRJNA587772/</a>
 
-The genomic data, including raw .fastq.gz, intermediate conversion files (e.g., .bam etc...), .vcf files, and associated data summaries, are compressed as a .tar file (`SMB_ddRAD_rawdata.tar`).
+Metagenomic data files (.fastq.gz) must be downloaded individually from the NBI database. Once downloaded, place all .fastq files into a desired working directory to be accessed during bioinformatic processing in QIIME.
 
-Download these data to your working directory and run the unzipping code: `tar -xvf SMB_ddRAD_rawdata.tar`
+Code for processing raw data files in QIIME are provided in the first analysis folder ("01_bioinformatic_analysis") in this repository.
 
-You should have 7 new items in the directory: <br>
-
-1. BAM_mpileups directory <br>
-2. FASTQ_Sequence_Files directory <br>
-3. Genome_Assemblies directory <br>
-4. LEggert_UMissouri_Bass_20180409-01669_Project_Report.pdf file
-5. LEggert_UMissouri_Bass_20180409-01669_Project_Statistics.tar.gz compressed directory
-6. Other
-7. VCF_Files
-
-You will not need any of the raw .fastq.gz files ('FASTQ_Sequence_Files' directory) for these analyses; all bioinformatic processing, i.e., alignment, assembly, etc., was completed at Floragenex, Inc. For these analyses, you will only need the full VCF file for the stringent filtering protocol, which is located in the 'VCF_Files' directory: `AR21_Aligned_Genotypes_stringent.vcf`. 
-
-Place the `AR21_Aligned_Genotypes_stringent.vcf` file along with the sample metadata in the /raw_data directory. You are good to start analyzing.
+You will need only the "raw_data" table outputs from QIIME to reproduce analyses 2 through [number].
 
 If you have any questions or issues with data and/or code, please don't hesitate to contact me: jcgunn@uvm.edu
 
