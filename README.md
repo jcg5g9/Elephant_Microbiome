@@ -1,7 +1,7 @@
 # Reproduce analyses for Budd & Gunn et al. 2020
 <font size="+1">Follow the steps listed below in the <b><i>Analyses</i></b> section to reproduce analyses for Budd & Gunn et al. (2020). Each step below gives a summary of the analysis and directs you to a general code file which then works through the analysis step-by-step. This general file will usually point you to other Rmd code, bash shell scripts, or python scripts. Each analysis is contained within sub-directories of the same name in the main R project directory.</font>
 
-Find the article here: <a href="url">https://onlinelibrary.wiley.com/doi/10.1002/ece3.6305</a>
+<b>Find the article here</b>: <a href="url">https://onlinelibrary.wiley.com/doi/10.1002/ece3.6305</a>
 
 Citation here: Budd K, Gunn JC, Finch T, Klymus K, Sitati N, Eggert LS. Effects of diet, habitat, and phylogeny on the fecal microbiome of wild African savanna (<i>Loxodonta africana</i>) and forest elephants (<i>L. cyclotis</i>). Ecol Evol. 2020;10:5637–5650.
 
