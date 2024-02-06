@@ -1,0 +1,216 @@
+---
+title: "Analysis 2: Data filtering and taxonomic summary analysis"
+author: "Joe Gunn"
+date: "2024-02-06"
+output: html_document
+---
+
+# Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
+We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
+
+## Specific Aim: Data filtering, cleaning, and summarization
+In this analysis, we read in, filter, and clean the raw metadata (i.e., information about species, diet, and habitat) and taxonomic classification for microbial operational taxonomic units (OTUs) for our African elephant samples. After we prepare data, we summarize the taxonomic classification data, specifically to determine the proportion of bacterial OTUs classified to each taxonomic group and the confidence of classification.
+
+## Phases of analysis:
+### Phase 1: Data read-in and preparation
+### Phase 2: Summary of taxonomic classification data
+
+## Libraries needed for analysis
+```{r}
+library(readxl)
+library(cowplot)
+library(tidyverse)
+library(qiime2R)
+library(scales)
+```
+
+## PHASE 1: DATA READ-IN AND PREPARATION
+
+### STEP 1: Read in and clean metadata for elephant samples and taxonomic classification data for microbial OTUs.
+In this step, we read in previously curated metadata for African savana elephants (<i>Loxidonta africana</i>) and African forest elephants (<i>L. cyclotis</i>) collected from across the species' native ranges (`../raw_data/metadata.xlsx`).
+
+#### 1a. Read in and clean sample metadata.
+In this step, we read in the full metadata for all elephants included in the study. Data include: 
+
+   1. "sample_id": a unique, alphanumeric ID for each elephant sample
+   2. "barcode": the sequence of nucleotides ligated to elephant metagenomic samples for downstream matching of OTUs to individual
+   3. "linker": primer linker sequence
+   4. "species": species of African elephant (L. africana or L. cyclotis)
+   5. "raider": yes/no identifier indicating whether an individual was a known crop a raider (yes) or not a known crop raider (no)
+   6. "habitat": habitat type of the individual (forest or savanna)
+   7. "age": general description of the age cohort of the individual (adult, subadult, juvenile)
+   8. "sex": sex of the individual (male or female)
+   9. "ind_id": a unique alphanumerical identifier for an individual elephant
+   10. "group": a combined identifier including species, diet, and habitat
+   11. "description": a combined identifier including species, diet, habitat, age, and sex
+
+##### 1a.1. Read in full metadata and convert characters to factors; run the Rmd chunk below.
+
+##### Read in and clean full metadata:
+```{r}
+# Read in raw metadata file
+metadata <- read_excel("../raw_data/metadata.xlsx")
+
+# Convert characters to factors
+metadata <- metadata %>%
+  mutate(barcode = factor(barcode), 
+         linker = factor(linker), 
+         species = factor(species), 
+         raider = factor(raider), 
+         habitat = factor(habitat), 
+         age = factor(age), 
+         sex = factor(sex), 
+         ind_id = factor(ind_id), 
+         group = factor(group), 
+         description = factor(description))
+
+# Save metadata for downstream analyses
+save(metadata, file = "data/metadata.Rda")
+```
+
+#### 1b. Read in and clean taxonomic classifcation data for metagenomic sequences of microbial OTUs.
+In this step, we read in the full taxonomic classification data for metagenomic sequences of microbial OTUs, which is generated in QIIME (see QIIME pipeline code in Analysis 1). Data include: 
+
+   1. "Feature.ID": a unique, alphanumeric ID for each OTU detected across the full dataset
+   2. "Taxon": the taxonomic classificaiton for each OTU detected across the full dataset
+   3. "Confidence": the probability (confidence) with which an OTU was accurately identified to the taxonomic classification indicated in the "Taxon" column
+
+##### 1a.1. Read in full dataset, convert to datatable, restructure, and convert characters to facotrs; run the Rmd chunk below.
+
+##### Read in and clean full taxonomy data:
+```{r}
+# read in qiime output taxonomy table
+taxa <- read_qza("../raw_data/taxa.qza")
+
+# Convert the "data" module of the full dataset into a dataframe, and separate out each taxonomic classification into separate columns
+taxa <- taxa$data %>% 
+  as.data.frame() %>%
+  separate(Taxon, sep = "; ", c("kingdom", "phylum", "class", "order", "family", "genus", "species"))
+
+# Change column names
+colnames(taxa)[1] <- c("otu_id")
+colnames(taxa)[9] <- c("confidence")
+
+# Convert characters to factors
+taxa <- taxa %>%
+  mutate(otu_id = factor(otu_id), 
+         kingdom = factor(kingdom), 
+         phylum = factor(phylum), 
+         class = factor(class), 
+         order = factor(order), 
+         family = factor(family), 
+         genus = factor(genus), 
+         species = factor(species))
+
+# Change all unclassified taxa that aren't already called "NA" to "NA"
+taxa$kingdom[taxa$kingdom == "k__"] <- NA
+taxa$phylum[taxa$phylum == "p__"] <- NA
+taxa$class[taxa$class == "c__"] <- NA
+taxa$order[taxa$order == "o__"] <- NA
+taxa$family[taxa$family == "f__"] <- NA
+taxa$genus[taxa$genus == "g__"] <- NA
+taxa$species[taxa$species == "s__"] <- NA
+
+# Separate the double underscore from the taxonomic classification data in each column
+taxa <- taxa %>% 
+  separate(kingdom, sep = "__", c("k", "kingdom")) %>% 
+  separate(phylum, sep = "__", c("p", "phylum")) %>% 
+  separate(class, sep = "__", c("c", "class")) %>% 
+  separate(order, sep = "__", c("o", "order")) %>% 
+  separate(family, sep = "__", c("f", "family")) %>% 
+  separate(genus, sep = "__", c("g", "genus")) %>% 
+  separate(species, sep = "__", c("s", "species"))
+
+# Drop the single letter columns
+taxa <- taxa %>%
+  dplyr::select(-c(k, p, c, o, f, g, s))
+
+# Save taxonomic data for downstream analyses
+save(taxa, file = "data/taxa.Rda")
+```
+### ----------------------- END OF PHASE 1: DATA READ-IN AND PREPARATION ----------------------- ###
+
+## PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA
+
+### STEP 1: Summarize the full taxonomic classification dataset.
+In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
+
+#### 1a. Read in and summarize the full data; run the Rmd chunk below:
+
+##### Summarize full genotype data
+```{r}
+# Load taxanomic data
+load("data/taxa.Rda")
+
+# Calculate overall mean and standard deviation of confidence for the full dataset
+taxa %>% 
+  summarize(mean_confidence = mean(confidence),
+            sd_confidence = sd(confidence))
+
+# Calculate mean (standard deviation) of confidence for each taxonomic level in addition to the number (and proportion) of samples successfully classified in each taxonomic group
+confidence <- taxa %>%
+  gather(kingdom:species, key = "taxonomic_level", value = "taxon") %>%
+  mutate(taxonomic_level = factor(taxonomic_level)) %>%
+  drop_na() %>%
+  group_by(taxonomic_level) %>%
+  summarize(mean_confidence = mean(confidence),
+            sd_confidence = sd(confidence),
+            n = as.numeric(n()),
+            prop = n/nrow(taxa)) %>%
+  mutate(taxonomic_level = fct_reorder(taxonomic_level, desc(prop)))
+
+# Save confidence data for plotting
+save(confidence, file = "data/confidence.Rda")
+```
+
+### Data summary:
+
+## Mean (standard deviation) of confidence for full dataset
+<b><i>mean</i><sub>all_taxa</sub> = 0.9615672 (0.07256966) </b><br>
+
+## Mean (standard deviation) per taxonomic level
+<b><i>mean</i><sub>kingdom</sub> = 0.9615672 (0.07256966) </b><br>
+<b><i>mean</i><sub>phylum</sub> = 0.9619102 (0.07212261) </b><br>
+<b><i>mean</i><sub>class</sub> = 0.9623321 (0.07155031) </b><br>
+<b><i>mean</i><sub>order</sub> = 0.9631189 (0.07083155) </b><br>
+<b><i>mean</i><sub>family</sub> = 0.9605259 (0.07348208) </b><br>
+<b><i>mean</i><sub>genus</sub> = 0.9577107 (0.07726817) </b><br>
+<b><i>mean</i><sub>species</sub> = 0.9107332 (0.09761776) </b><br>
+
+## Number of samples (proportion) successfully classified per taxonomic level
+<b><i>n</i><sub>kingdom</sub> = 9066 (1.0000000) </b><br>
+<b><i>n</i><sub>phylum</sub> = 8878 (0.9792632) </b><br>
+<b><i>n</i><sub>class</sub> = 8840 (0.9750717) </b><br>
+<b><i>n</i><sub>order</sub> = 8706 (0.9602912) </b><br>
+<b><i>n</i><sub>family</sub> = 6138 (0.6770351) </b><br>
+<b><i>n</i><sub>genus</sub> = 2279 (0.2513788) </b><br>
+<b><i>n</i><sub>species</sub> = 271 (0.0298919) </b><br>
+
+These sample sizes were used as the basis for Table S1 in the final manuscript.
+
+### STEP 1: Visualize confidence and proportion of taxonomic classification.
+
+#### 1a. Generate plot for confidence and proportion of taxonomic classification, with these factors on dual y-axes; run the Rmd chunk below:
+
+##### Plot confidence and proportion of taxonomic classification on dual y-axes: `figures/confidence.pdf`
+```{r}
+# Load confidence data
+load("data/confidence.Rda")
+
+# Plot confidence and proportion of samples per taxonomic level
+pdf("figures/confidence.pdf", width = 5, height = 4) 
+
+ggplot(confidence, aes(x = taxonomic_level, y = mean_confidence)) + geom_point(size = 1) +
+  geom_errorbar(aes(ymin = mean_confidence - sd_confidence, ymax = mean_confidence + sd_confidence), linewidth = .3) + 
+  scale_y_continuous(name = "Mean confidence of classification (%)", sec.axis = sec_axis(~. /0.97, name = "Proportion of OTUs classfied (%)"), labels = number_format(accuracy = 0.1)) + 
+  geom_line(mapping = aes(x = taxonomic_level, y = prop, group = 1), size = 2, color = "blue", alpha = 0.6) + 
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Taxonomic level") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+dev.off()
+```
+
+### ----------------------- END OF PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
+
+### ----------------------- END OF ANALYSIS 2: DATA FILTERING AND TAXONOMIC SUMMARY ANALYSIS ----------------------- ###

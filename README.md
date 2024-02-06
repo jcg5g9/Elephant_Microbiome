@@ -5,14 +5,14 @@
 
 Citation here: Budd K, Gunn JC, Finch T, Klymus K, Sitati N, Eggert LS. Effects of diet, habitat, and phylogeny on the fecal microbiome of wild African savanna (<i>Loxodonta africana</i>) and forest elephants (<i>L. cyclotis</i>). Ecol Evol. 2020;10:5637–5650.
 
-## Project: Population genomic analysis of Smallmouth Bass and Neosho Bass in the Central Interior Highlands
+## Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
 
 ## General information on repository structure
 This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Budd & Gunn et al. (2020). In the home directory of the repository (Elephant_Microbiome), you will find a README.md file (the source script for this information), the R Project file (Elephant_Microbiome.Rproj), a .gitignore file, and 7 different "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
 
 1) 01_bioinformatic_analyses
-2) 02_
+2) 02_filtering_analysis
 3) 03_
 4) 04_
 5) 05_
