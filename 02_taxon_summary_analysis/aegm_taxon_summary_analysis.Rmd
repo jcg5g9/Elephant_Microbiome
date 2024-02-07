@@ -209,6 +209,10 @@ ggplot(confidence, aes(x = taxonomic_level, y = mean_confidence)) +
 dev.off()
 ```
 
+This figure is the basis for Figure S1 in the final ms.
+
+Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
+
 ### ----------------------- END OF PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
 
 ### ----------------------- END OF ANALYSIS 2: DATA FILTERING AND TAXONOMIC SUMMARY ANALYSIS ----------------------- ###
