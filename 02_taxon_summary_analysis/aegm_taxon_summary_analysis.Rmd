@@ -1,5 +1,5 @@
 ---
-title: "Analysis 2: Data filtering and taxonomic summary analysis"
+title: "Analysis 2: Taxonomic classification summary analysis"
 author: "Joe Gunn"
 date: "2024-02-06"
 output: html_document
@@ -49,7 +49,7 @@ In this step, we read in the full metadata for all elephants included in the stu
 ##### Read in and clean full metadata:
 ```{r}
 # Read in raw metadata file
-metadata <- read_excel("../raw_data/metadata.xlsx")
+metadata <- read_tsv("../raw_data/metadata.tsv")
 
 # Convert characters to factors
 metadata <- metadata %>%
@@ -69,65 +69,60 @@ save(metadata, file = "data/metadata.Rda")
 ```
 
 #### 1b. Read in and clean taxonomic classifcation data for metagenomic sequences of microbial OTUs.
-In this step, we read in the full taxonomic classification data for metagenomic sequences of microbial OTUs, which is generated in QIIME (see QIIME pipeline code in Analysis 1). Data include: 
+In this step, we read in the full taxonomic classification data (`../raw_data/taxa.qza`) for metagenomic sequences of microbial OTUs, which is generated in QIIME (see QIIME pipeline code in Analysis 1). Data include: 
 
    1. "Feature.ID": a unique, alphanumeric ID for each OTU detected across the full dataset
    2. "Taxon": the taxonomic classificaiton for each OTU detected across the full dataset
    3. "Confidence": the probability (confidence) with which an OTU was accurately identified to the taxonomic classification indicated in the "Taxon" column
+   
+We also generate a "phyloseq" object, a formatted data object compatible with the phyloseq software library, which contains the taxonomic classificaiton, otu abundance, and phylogenetic tree relationship data, along with associated metadata. We use the phyloseq object for downstream analyses. We merge these two datasets to get a clean version of the taxonomic classification and confidence data in this analysis.
 
 ##### 1a.1. Read in full dataset, convert to datatable, restructure, and convert characters to facotrs; run the Rmd chunk below.
 
 ##### Read in and clean full taxonomy data:
 ```{r}
-# read in qiime output taxonomy table
+# Read in taxonomic classificaiton data alone to get confidence data
 taxa <- read_qza("../raw_data/taxa.qza")
 
-# Convert the "data" module of the full dataset into a dataframe, and separate out each taxonomic classification into separate columns
-taxa <- taxa$data %>% 
+# Read in, combine, and convert QIIME output and metadata to phyloseq format
+phyloseq <- qza_to_phyloseq(features = "../raw_data/otus.qza", 
+                            taxonomy = "../raw_data/taxa.qza",  
+                            tree = "../raw_data/tree.qza", 
+                            metadata = "../raw_data/metadata.tsv")
+
+# Convert the "data" module of the taxonomic classification dataset into a dataframe
+otu_ids <- taxa$data %>% 
   as.data.frame() %>%
-  separate(Taxon, sep = "; ", c("kingdom", "phylum", "class", "order", "family", "genus", "species"))
+  mutate(otu_id = factor(`Feature.ID`),
+         confidence = factor(Confidence)) %>%
+  dplyr::select(otu_id, confidence)
 
-# Change column names
-colnames(taxa)[1] <- c("otu_id")
-colnames(taxa)[9] <- c("confidence")
-
-# Convert characters to factors
-taxa <- taxa %>%
+# Extract taxonomic classifcaitons from the phyloseq object
+taxa <- tax_table(phyloseq) %>%
+  as.data.frame() %>%
+  rownames_to_column("otu_id") %>%
   mutate(otu_id = factor(otu_id), 
-         kingdom = factor(kingdom), 
-         phylum = factor(phylum), 
-         class = factor(class), 
-         order = factor(order), 
-         family = factor(family), 
-         genus = factor(genus), 
-         species = factor(species))
+         kingdom = factor(Kingdom), 
+         phylum = factor(Phylum), 
+         class = factor(Class), 
+         order = factor(Order), 
+         family = factor(Family), 
+         genus = factor(Genus), 
+         species = factor(Species)) %>%
+  select(otu_id, kingdom, phylum, class, order, family, genus, species)
 
-# Change all unclassified taxa that aren't already called "NA" to "NA"
-taxa$kingdom[taxa$kingdom == "k__"] <- NA
-taxa$phylum[taxa$phylum == "p__"] <- NA
-taxa$class[taxa$class == "c__"] <- NA
-taxa$order[taxa$order == "o__"] <- NA
-taxa$family[taxa$family == "f__"] <- NA
-taxa$genus[taxa$genus == "g__"] <- NA
-taxa$species[taxa$species == "s__"] <- NA
-
-# Separate the double underscore from the taxonomic classification data in each column
-taxa <- taxa %>% 
-  separate(kingdom, sep = "__", c("k", "kingdom")) %>% 
-  separate(phylum, sep = "__", c("p", "phylum")) %>% 
-  separate(class, sep = "__", c("c", "class")) %>% 
-  separate(order, sep = "__", c("o", "order")) %>% 
-  separate(family, sep = "__", c("f", "family")) %>% 
-  separate(genus, sep = "__", c("g", "genus")) %>% 
-  separate(species, sep = "__", c("s", "species"))
-
-# Drop the single letter columns
-taxa <- taxa %>%
-  dplyr::select(-c(k, p, c, o, f, g, s))
+# Merge taxonomic classifications with confidence data
+taxa <- merge(otu_ids, 
+              taxa, 
+              by = "otu_id")
 
 # Save taxonomic data for downstream analyses
 save(taxa, file = "data/taxa.Rda")
+
+# Save raw phyloseq object for downstream analyses
+save(phyloseq, file = "data/phyloseq.Rda")
 ```
+
 ### ----------------------- END OF PHASE 1: DATA READ-IN AND PREPARATION ----------------------- ###
 
 ## PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA
@@ -200,12 +195,15 @@ load("data/confidence.Rda")
 # Plot confidence and proportion of samples per taxonomic level
 pdf("figures/confidence.pdf", width = 5, height = 4) 
 
-ggplot(confidence, aes(x = taxonomic_level, y = mean_confidence)) + geom_point(size = 1) +
+ggplot(confidence, aes(x = taxonomic_level, y = mean_confidence)) + 
+  geom_point(size = 1) +
   geom_errorbar(aes(ymin = mean_confidence - sd_confidence, ymax = mean_confidence + sd_confidence), linewidth = .3) + 
   scale_y_continuous(name = "Mean confidence of classification (%)", sec.axis = sec_axis(~. /0.97, name = "Proportion of OTUs classfied (%)"), labels = number_format(accuracy = 0.1)) + 
   geom_line(mapping = aes(x = taxonomic_level, y = prop, group = 1), size = 2, color = "blue", alpha = 0.6) + 
   theme_set(theme_cowplot(12)) +
   labs(x = "Taxonomic level") +
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text = element_text(size = 15)) + 
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 
 dev.off()
