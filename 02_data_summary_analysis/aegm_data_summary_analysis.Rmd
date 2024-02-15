@@ -26,6 +26,7 @@ library(scales)
 ```
 
 ## PHASE 1: DATA READ-IN AND PREPARATION
+In this phase of the analysis, we read in and prepare full metadata set for African elephant fecal samples as well as the full taxonomic classification dataset (based on the identification of microbial operational taxonomic units [OTUs] present in the samples from metagenomic analysis). We give a full description of columns in each dataset and prepare data objects for downstream analyses.
 
 ### STEP 1: Read in and clean metadata for elephant samples and taxonomic classification data for microbial OTUs.
 In this step, we read in previously curated metadata for African savana elephants (<i>Loxidonta africana</i>) and African forest elephants (<i>L. cyclotis</i>) collected from across the species' native ranges (`../raw_data/metadata.xlsx`).
@@ -126,15 +127,113 @@ save(phyloseq, file = "data/phyloseq.Rda")
 
 ### ----------------------- END OF PHASE 1: DATA READ-IN AND PREPARATION ----------------------- ###
 
-## PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA
-In this phase of the analysis, we summarize
+## PHASE 3: SUMMARY OF METADATA
+In this phase of analysis, we summarize the full metadata set, giving numbers of samples per group of interest in downstream analyses.
+
+### STEP 1: Summarize the full metadata.
+In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
+
+#### 1a. Read in and summarize metadata data; run the Rmd chunk below:
+
+##### Summarize full metadata:
+```{r}
+# Load taxanomic data
+load("data/metadata.Rda")
+
+# Calculate number of elephant samples per species
+metadata %>% 
+  group_by(species) %>%
+  count()
+
+# Calculate number of elephant samples per diet (within species)
+metadata %>% 
+  group_by(species, raider) %>%
+  count()
+
+# Calculate number of elephant samples per diet (within species)
+metadata %>% 
+  group_by(species, habitat) %>%
+  count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, age) %>%
+  count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, sex) %>%
+  count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, habitat, raider) %>%
+  count()
+```
+
+### Metadata summary:
+
+## Total
+<b><i>N</i><sub>total</sub></b> = 48 <br>
+
+## By species (native range)
+<b><i>N</i><sub>afr</sub></b> = 35 <br>
+<b><i>N</i><sub>cyc</sub></b> = 15 <br>
+
+## By diet (within species)
+<b><i>N</i><sub>afr_raider</sub></b> = 16 <br>
+<b><i>N</i><sub>afr_nonraider</sub></b> = 19 <br>
+
+<b><i>N</i><sub>cyc_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_nonraider</sub></b> = 13 <br>
+
+## By habitat (within species)
+<b><i>N</i><sub>afr_savanna</sub></b> = 15 <br>
+<b><i>N</i><sub>afr_forest</sub></b> = 20 <br>
+
+<b><i>N</i><sub>cyc_savanna</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest</sub></b> = 13 <br>
+
+## By age cohort (within species)
+<b><i>N</i><sub>afr_adult</sub></b> = 18 <br>
+<b><i>N</i><sub>afr_subadult</sub></b> = 13 <br>
+<b><i>N</i><sub>afr_juvenile</sub></b> = 4 <br>
+
+<b><i>N</i><sub>cyc_adult</sub></b> = 13 <br>
+<b><i>N</i><sub>cyc_subadult</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_juvenile</sub></b> = 0 <br>
+
+## By sex (within species)
+<b><i>N</i><sub>afr_male</sub></b> = 17 <br>
+<b><i>N</i><sub>afr_female</sub></b> = 18 <br>
+
+<b><i>N</i><sub>cyc_male</sub></b> = 6 <br>
+<b><i>N</i><sub>cyc_female</sub></b> = 7 <br>
+
+## By species, habitat, and diet
+<b><i>N</i><sub>afr_savanna_raider</sub></b> = 3 <br>
+<b><i>N</i><sub>afr_savanna_nonraider</sub></b> = 12 <br>
+<b><i>N</i><sub>afr_forest_raider</sub></b> = 13 <br>
+<b><i>N</i><sub>afr_forest_nonraider</sub></b> = 7 <br>
+
+<b><i>N</i><sub>cyc_savanna_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_savanna_nonraider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest_nonraider</sub></b> = 13 <br>
+
+This information is listed in the Results section of the final ms.
+
+### ----------------------- END OF PHASE 2: SUMMARY OF METADATA ----------------------- ###
+
+## PHASE 3: SUMMARY OF TAXONOMIC CLASSIFICATION DATA
+In this phase of the analysis, we summarize the full taxonomic classification dataset, giving number of samples per group (taxon) of interest and calculating confidence of taxonomic classificaiton across OTUs.
 
 ### STEP 1: Summarize the full taxonomic classification dataset.
 In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
 
 #### 1a. Read in and summarize the full data; run the Rmd chunk below:
 
-##### Summarize full genotype data
+##### Summarize full taxonomic classification and confidence data:
 ```{r}
 # Load taxanomic data
 load("data/taxa.Rda")
@@ -233,107 +332,8 @@ dev.off()
 
 This figure is the basis for Figure S1 in the final ms.
 
-Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
+Given that Order was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
 
-### ----------------------- END OF PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
-
-## PHASE 3: SUMMARY OF METADATA
-
-### STEP 1: Summarize the full taxonomic classification dataset.
-In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
-
-#### 1a. Read in and summarize the full data; run the Rmd chunk below:
-
-##### Summarize full genotype data
-```{r}
-# Load taxanomic data
-load("data/metadata.Rda")
-
-# Calculate number of elephant samples per species
-metadata %>% 
-  group_by(species) %>%
-  count()
-
-# Calculate number of elephant samples per diet (within species)
-metadata %>% 
-  group_by(species, raider) %>%
-  count()
-
-# Calculate number of elephant samples per diet (within species)
-metadata %>% 
-  group_by(species, habitat) %>%
-  count()
-
-# Calculate number of elephant samples per age cohort (within species)
-metadata %>% 
-  group_by(species, age) %>%
-  count()
-
-# Calculate number of elephant samples per age cohort (within species)
-metadata %>% 
-  group_by(species, sex) %>%
-  count()
-
-# Calculate number of elephant samples per age cohort (within species)
-metadata %>% 
-  group_by(species, habitat, raider) %>%
-  count()
-```
-
-### Metadata summary:
-
-## Total
-<b><i>N</i><sub>total</sub></b> = 48 <br>
-
-## By species (native range)
-<b><i>N</i><sub>afr</sub></b> = 35 <br>
-<b><i>N</i><sub>cyc</sub></b> = 15 <br>
-
-## By diet (within species)
-<b><i>N</i><sub>afr_raider</sub></b> = 16 <br>
-<b><i>N</i><sub>afr_nonraider</sub></b> = 19 <br>
-
-<b><i>N</i><sub>cyc_raider</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_nonraider</sub></b> = 13 <br>
-
-## By habitat (within species)
-<b><i>N</i><sub>afr_savanna</sub></b> = 15 <br>
-<b><i>N</i><sub>afr_forest</sub></b> = 20 <br>
-
-<b><i>N</i><sub>cyc_savanna</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_forest</sub></b> = 13 <br>
-
-## By age cohort (within species)
-<b><i>N</i><sub>afr_adult</sub></b> = 18 <br>
-<b><i>N</i><sub>afr_subadult</sub></b> = 13 <br>
-<b><i>N</i><sub>afr_juvenile</sub></b> = 4 <br>
-
-<b><i>N</i><sub>cyc_adult</sub></b> = 13 <br>
-<b><i>N</i><sub>cyc_subadult</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_juvenile</sub></b> = 0 <br>
-
-## By sex (within species)
-<b><i>N</i><sub>afr_male</sub></b> = 17 <br>
-<b><i>N</i><sub>afr_female</sub></b> = 18 <br>
-
-<b><i>N</i><sub>cyc_male</sub></b> = 6 <br>
-<b><i>N</i><sub>cyc_female</sub></b> = 7 <br>
-
-## By species, habitat, and diet
-<b><i>N</i><sub>afr_savanna_raider</sub></b> = 3 <br>
-<b><i>N</i><sub>afr_savanna_nonraider</sub></b> = 12 <br>
-<b><i>N</i><sub>afr_forest_raider</sub></b> = 13 <br>
-<b><i>N</i><sub>afr_forest_nonraider</sub></b> = 7 <br>
-
-<b><i>N</i><sub>cyc_savanna_raider</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_savanna_nonraider</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_forest_raider</sub></b> = 0 <br>
-<b><i>N</i><sub>cyc_forest_nonraider</sub></b> = 13 <br>
-
-This information is the basis for Figure S1 in the final ms.
-
-Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
-
-### ----------------------- END OF PHASE 3: SUMMARY OF METADATA ----------------------- ###
+### ----------------------- END OF PHASE 3: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
 
 ### ----------------------- END OF ANALYSIS 2: DATA FILTERING AND TAXONOMIC SUMMARY ANALYSIS ----------------------- ###
