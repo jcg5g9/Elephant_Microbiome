@@ -273,6 +273,11 @@ metadata %>%
 metadata %>% 
   group_by(species, sex) %>%
   count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, habitat, raider) %>%
+  count()
 ```
 
 ### Metadata summary:
@@ -314,8 +319,18 @@ metadata %>%
 <b><i>N</i><sub>cyc_male</sub></b> = 6 <br>
 <b><i>N</i><sub>cyc_female</sub></b> = 7 <br>
 
+## By species, habitat, and diet
+<b><i>N</i><sub>afr_savanna_raider</sub></b> = 3 <br>
+<b><i>N</i><sub>afr_savanna_nonraider</sub></b> = 12 <br>
+<b><i>N</i><sub>afr_forest_raider</sub></b> = 13 <br>
+<b><i>N</i><sub>afr_forest_nonraider</sub></b> = 7 <br>
 
-This figure is the basis for Figure S1 in the final ms.
+<b><i>N</i><sub>cyc_savanna_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_savanna_nonraider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest_nonraider</sub></b> = 13 <br>
+
+This information is the basis for Figure S1 in the final ms.
 
 Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
 
