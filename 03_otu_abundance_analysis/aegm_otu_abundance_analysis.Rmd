@@ -43,7 +43,7 @@ load("../02_taxon_summary_analysis/data/phyloseq.Rda")
 otu_abundance <- as.data.frame(otu_table(phy_raw)) %>%
   rownames_to_column("otu_id") %>%
   mutate(otu_id = factor(otu_id)) %>%
-  gather(MM69:M10, key = "ind_id", value ="abundance")
+  gather(MM69:M10, key = "ind_id", value = "abundance")
 
 # Sum read counts for all individuals
 reads <- otu_abundance %>%
@@ -95,10 +95,6 @@ ggplot(reads, aes(x = ind_id, y = reads)) +
 dev.off()
 ```
 
-<b> Data summary Results </b>: <br>
-
-After data summarization, we observed that individual OB182 had an order of magnitude lower read count (163) than the next most abundant individual (11,460). For this reason, we opted to drop OB182 from the final dataset for downstream analyses, and the OTU raw abundance data were rarefied to 11,460 reads (Continue on to Step 1d)
-
 #### 1c. Omit sample with extremely high read count relative to other samples (CR71), and re-visualize read counts to identify low-read individuals; run the Rmd chunk below.
 
 ##### Plot OTU read counts per elephant sample without individual CR71: `figures/reads_filtered.pdf`
@@ -125,9 +121,13 @@ ggplot(reads, aes(x = ind_id, y = reads)) +
 dev.off()
 ```
 
-#### 1d. Omit sample with extremely high read count relative to other samples (CR71), and re-visualize read counts to identify low-read individuals; run the Rmd chunk below.
+<b> Data summary results </b>: <br>
 
-##### Plot OTU read counts per elephant sample without individual CR71: `figures/reads_filtered.pdf`
+After data summarization, we observed that individual OB182 had an order of magnitude lower read count (163) than the next most abundant individual (11,460; see Step 1a above). For this reason, we opted to drop OB182 from the final dataset for downstream analyses, and the OTU raw abundance data were rarefied to 11,460 reads (Continue on to Step 1d).
+
+#### 1d. Subset out sample with extremely low read count relative to other samples (OB182), and generate new phyloseq object for downstream analyses; run the Rmd chunk below.
+
+##### Subset sample with low read count and generate new phyloseq object:
 ```{r}
 # Load read count data
 load("../02_taxon_summary_analysis/data/phyloseq.Rda")
@@ -140,11 +140,11 @@ save(phyloseq, file = "data/phyloseq.Rda")
 ```
 
 ### STEP 2: Rarefy OTU abundance data
-In this step, we rarefy the OTU abundance dataset to the lowest number of reads captured in the full dataset for an individual. Rarefaction is a necessary step to randomly sample OTU abundance data to an even number of "samples", aka reads, to prevent sampling bias in downstream analyses. 
+In this step, we rarefy the OTU abundance dataset to the lowest number of reads captured in the full dataset for an individual (CR3, <i>N</i>=11,460). Rarefaction is a necessary step to randomly sample OTU abundance data to an even number of "samples", aka reads, to prevent sampling bias in downstream analyses. 
 
 #### 2a. Rarefy the OTU abundance data; run the Rmd chunk below.
 
-##### Rarefy abundance data
+##### Rarefy abundance data:
 ```{r}
 # Load filtered phyloseq object
 load("data/phyloseq.Rda")
@@ -166,7 +166,7 @@ In this step, we summarize OTU abundance data across four different taxonomic le
 #### 3a. Summarize OTU abundance by kingdom, phylum, class, and order; run the Rmd chunk below.
 In this step, we summarize OTU abundance at the kingdom level.
 
-##### Rarefy abundance data
+##### Rarefy abundance data:
 ```{r}
 # Load rarefied phyloseq object
 load("data/phyloseq_rarefied.Rda")

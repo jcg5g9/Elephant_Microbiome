@@ -9,11 +9,12 @@ output: html_document
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
 
 ## Specific Aim: Data filtering, cleaning, and summarization
-In this analysis, we read in, filter, and clean the raw metadata (i.e., information about species, diet, and habitat) and taxonomic classification for microbial operational taxonomic units (OTUs) for our African elephant samples. After we prepare data, we summarize the taxonomic classification data, specifically to determine the proportion of bacterial OTUs classified to each taxonomic group and the confidence of classification.
+In this analysis, we read in, filter, and clean the raw metadata (i.e., information about species, diet, and habitat) and taxonomic classification for microbial operational taxonomic units (OTUs) for our African elephant samples. After we prepare data, we summarize the taxonomic classification data, specifically to determine the proportion of bacterial OTUs classified to each taxonomic group and the confidence of classification. We then give a wholistic and broken-down summary of our elephant fecal samples, including sample numbers within species, diet treatments, and habitats.
 
 ## Phases of analysis:
 ### Phase 1: Data read-in and preparation
 ### Phase 2: Summary of taxonomic classification data
+### Phase 3: Summary of metadata
 
 ## Libraries needed for analysis
 ```{r}
@@ -94,7 +95,7 @@ phyloseq <- qza_to_phyloseq(features = "../raw_data/otus.qza",
 otu_ids <- taxa$data %>% 
   as.data.frame() %>%
   mutate(otu_id = factor(`Feature.ID`),
-         confidence = factor(Confidence)) %>%
+         confidence = as.numeric(Confidence)) %>%
   dplyr::select(otu_id, confidence)
 
 # Extract taxonomic classifcaitons from the phyloseq object
@@ -126,6 +127,7 @@ save(phyloseq, file = "data/phyloseq.Rda")
 ### ----------------------- END OF PHASE 1: DATA READ-IN AND PREPARATION ----------------------- ###
 
 ## PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA
+In this phase of the analysis, we summarize
 
 ### STEP 1: Summarize the full taxonomic classification dataset.
 In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
@@ -136,6 +138,16 @@ In this step, we are summarizing confidence of classification to each taxonomic 
 ```{r}
 # Load taxanomic data
 load("data/taxa.Rda")
+
+# Calculate number of unique groups within each taxonomic level 
+taxa %>%
+  summarize(kingdoms = length(unique(kingdom)),
+            phyla = length(unique(phylum)),
+            classes = length(unique(class)),
+            orders = length(unique(order)),
+            families = length(unique(family)),
+            genera = length(unique(genus)),
+            species = length(unique(species)))
 
 # Calculate overall mean and standard deviation of confidence for the full dataset
 taxa %>% 
@@ -160,32 +172,42 @@ save(confidence, file = "data/confidence.Rda")
 
 ### Data summary:
 
+## OTU Summary
+<b><i>N</i><sub>OTUs</sub></b> = 9,066
+<b><i>N</i><sub>kingdoms</sub></b> = 2 <br>
+<b><i>N</i><sub>phyla</sub></b> = 21 <br>
+<b><i>N</i><sub>classes</sub></b> = 40 <br>
+<b><i>N</i><sub>orders</sub></b> = 61 <br>
+<b><i>N</i><sub>families</sub></b> = 84 <br>
+<b><i>N</i><sub>genera</sub></b> = 130 <br>
+<b><i>N</i><sub>species</sub></b> = 66 <br>
+
 ## Mean (standard deviation) of confidence for full dataset
 <b><i>mean</i><sub>all_taxa</sub> = 0.9615672 (0.07256966) </b><br>
 
-## Mean (standard deviation) per taxonomic level
-<b><i>mean</i><sub>kingdom</sub> = 0.9615672 (0.07256966) </b><br>
-<b><i>mean</i><sub>phylum</sub> = 0.9619102 (0.07212261) </b><br>
-<b><i>mean</i><sub>class</sub> = 0.9623321 (0.07155031) </b><br>
-<b><i>mean</i><sub>order</sub> = 0.9631189 (0.07083155) </b><br>
-<b><i>mean</i><sub>family</sub> = 0.9605259 (0.07348208) </b><br>
-<b><i>mean</i><sub>genus</sub> = 0.9577107 (0.07726817) </b><br>
-<b><i>mean</i><sub>species</sub> = 0.9107332 (0.09761776) </b><br>
+## Mean (standard deviation) of confidence per taxonomic level
+<b><i>mean</i><sub>kingdom</sub></b> = 0.9615672 (0.07256966) <br>
+<b><i>mean</i><sub>phylum</sub></b> = 0.9619102 (0.07212261) <br>
+<b><i>mean</i><sub>class</sub></b> = 0.9623321 (0.07155031) <br>
+<b><i>mean</i><sub>order</sub></b> = 0.9631189 (0.07083155) <br>
+<b><i>mean</i><sub>family</sub></b> = 0.9605259 (0.07348208) <br>
+<b><i>mean</i><sub>genus</sub></b> = 0.9577107 (0.07726817) <br>
+<b><i>mean</i><sub>species</sub></b> = 0.9107332 (0.09761776) <br>
 
 ## Number of samples (proportion) successfully classified per taxonomic level
-<b><i>n</i><sub>kingdom</sub> = 9066 (1.0000000) </b><br>
-<b><i>n</i><sub>phylum</sub> = 8878 (0.9792632) </b><br>
-<b><i>n</i><sub>class</sub> = 8840 (0.9750717) </b><br>
-<b><i>n</i><sub>order</sub> = 8706 (0.9602912) </b><br>
-<b><i>n</i><sub>family</sub> = 6138 (0.6770351) </b><br>
-<b><i>n</i><sub>genus</sub> = 2279 (0.2513788) </b><br>
-<b><i>n</i><sub>species</sub> = 271 (0.0298919) </b><br>
+<b><i>N</i><sub>kingdom</sub></b> = 9066 (1.0000000) <br>
+<b><i>N</i><sub>phylum</sub></b> = 8878 (0.9792632) <br>
+<b><i>N</i><sub>class</sub></b> = 8840 (0.9750717) <br>
+<b><i>N</i><sub>order</sub></b> = 8706 (0.9602912) <br>
+<b><i>N</i><sub>family</sub></b> = 6138 (0.6770351) <br>
+<b><i>N</i><sub>genus</sub></b> = 2279 (0.2513788) <br>
+<b><i>N</i><sub>species</sub></b> = 271 (0.0298919) <br>
 
 These sample sizes were used as the basis for Table S1 in the final manuscript.
 
-### STEP 1: Visualize confidence and proportion of taxonomic classification.
+### STEP 2: Visualize confidence and proportion of taxonomic classification.
 
-#### 1a. Generate plot for confidence and proportion of taxonomic classification, with these factors on dual y-axes; run the Rmd chunk below:
+#### 2a. Generate plot for confidence and proportion of taxonomic classification, with these factors on dual y-axes; run the Rmd chunk below:
 
 ##### Plot confidence and proportion of taxonomic classification on dual y-axes: `figures/confidence.pdf`
 ```{r}
@@ -214,5 +236,89 @@ This figure is the basis for Figure S1 in the final ms.
 Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
 
 ### ----------------------- END OF PHASE 2: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
+
+## PHASE 3: SUMMARY OF METADATA
+
+### STEP 1: Summarize the full taxonomic classification dataset.
+In this step, we are summarizing confidence of classification to each taxonomic level for the full taxonomy dataset.
+
+#### 1a. Read in and summarize the full data; run the Rmd chunk below:
+
+##### Summarize full genotype data
+```{r}
+# Load taxanomic data
+load("data/metadata.Rda")
+
+# Calculate number of elephant samples per species
+metadata %>% 
+  group_by(species) %>%
+  count()
+
+# Calculate number of elephant samples per diet (within species)
+metadata %>% 
+  group_by(species, raider) %>%
+  count()
+
+# Calculate number of elephant samples per diet (within species)
+metadata %>% 
+  group_by(species, habitat) %>%
+  count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, age) %>%
+  count()
+
+# Calculate number of elephant samples per age cohort (within species)
+metadata %>% 
+  group_by(species, sex) %>%
+  count()
+```
+
+### Metadata summary:
+
+## Total
+<b><i>N</i><sub>total</sub></b> = 48 <br>
+
+## By species (native range)
+<b><i>N</i><sub>afr</sub></b> = 35 <br>
+<b><i>N</i><sub>cyc</sub></b> = 15 <br>
+
+## By diet (within species)
+<b><i>N</i><sub>afr_raider</sub></b> = 16 <br>
+<b><i>N</i><sub>afr_nonraider</sub></b> = 19 <br>
+
+<b><i>N</i><sub>cyc_raider</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_nonraider</sub></b> = 13 <br>
+
+## By habitat (within species)
+<b><i>N</i><sub>afr_savanna</sub></b> = 15 <br>
+<b><i>N</i><sub>afr_forest</sub></b> = 20 <br>
+
+<b><i>N</i><sub>cyc_savanna</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_forest</sub></b> = 13 <br>
+
+## By age cohort (within species)
+<b><i>N</i><sub>afr_adult</sub></b> = 18 <br>
+<b><i>N</i><sub>afr_subadult</sub></b> = 13 <br>
+<b><i>N</i><sub>afr_juvenile</sub></b> = 4 <br>
+
+<b><i>N</i><sub>cyc_adult</sub></b> = 13 <br>
+<b><i>N</i><sub>cyc_subadult</sub></b> = 0 <br>
+<b><i>N</i><sub>cyc_juvenile</sub></b> = 0 <br>
+
+## By sex (within species)
+<b><i>N</i><sub>afr_male</sub></b> = 17 <br>
+<b><i>N</i><sub>afr_female</sub></b> = 18 <br>
+
+<b><i>N</i><sub>cyc_male</sub></b> = 6 <br>
+<b><i>N</i><sub>cyc_female</sub></b> = 7 <br>
+
+
+This figure is the basis for Figure S1 in the final ms.
+
+Given that Orde was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
+
+### ----------------------- END OF PHASE 3: SUMMARY OF METADATA ----------------------- ###
 
 ### ----------------------- END OF ANALYSIS 2: DATA FILTERING AND TAXONOMIC SUMMARY ANALYSIS ----------------------- ###

@@ -3,7 +3,7 @@
 
 <b>Find the article here</b>: <a href="url">https://onlinelibrary.wiley.com/doi/10.1002/ece3.6305</a>
 
-Citation here: Budd K, Gunn JC, Finch T, Klymus K, Sitati N, Eggert LS. Effects of diet, habitat, and phylogeny on the fecal microbiome of wild African savanna (<i>Loxodonta africana</i>) and forest elephants (<i>L. cyclotis</i>). Ecol Evol. 2020;10:5637–5650.
+<b>Citation here</b>: Budd K, Gunn JC, Finch T, Klymus K, Sitati N, Eggert LS. Effects of diet, habitat, and phylogeny on the fecal microbiome of wild African savanna (<i>Loxodonta africana</i>) and forest elephants (<i>L. cyclotis</i>). Ecol Evol. 2020;10:5637–5650.
 
 ## Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
 We characterized the Afican elephant gut microbiome (aka, A.E.G.M.), specifically of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
