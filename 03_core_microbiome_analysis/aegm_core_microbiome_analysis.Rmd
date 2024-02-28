@@ -37,19 +37,19 @@ In this step, we summarize OTU abundance at the elephant sample level (i.e., how
 ##### Generate, clean, and summarize the OTU abundance data from phyloseq object:
 ```{r}
 # Read in phyloseq object
-load("../02_taxon_summary_analysis/data/phyloseq.Rda")
+load("../02_data_summary_analysis/data/phyloseq.Rda")
 
 # Create a data object with otu abundnace data, clean, and gather to make tall table
-otu_abundance <- as.data.frame(otu_table(phy_raw)) %>%
+otu_abundance <- as.data.frame(otu_table(phyloseq)) %>%
   rownames_to_column("otu_id") %>%
   mutate(otu_id = factor(otu_id)) %>%
-  gather(MM69:M10, key = "ind_id", value = "abundance")
+  gather(MM69:M10, key = "ind_id", value = "abundance") %>% 
+  mutate(ind_id = factor(ind_id))
 
 # Sum read counts for all individuals
 reads <- otu_abundance %>%
   group_by(ind_id) %>%
-  summarize(reads = sum(abundance)) %>%
-  mutate(ind_id = factor(ind_id))
+  summarize(sum(abundance))
 
 # Summarize mean (standard deviation) of read counts across the dataset
 reads %>%
@@ -67,11 +67,11 @@ save(reads, file = "data/reads.Rda")
 ### Data summary:
 
 ## Mean (standard deviation) of read counts for full dataset
-<b><i>mean</i><sub>reads</sub> = 129,632.8 (463,334.5) </b><br>
+<b><i>mean</i><sub>reads</sub></b> = 129,632.8 (463,334.5) <br>
 
 ## Minimum and maximum confidence for full dataset
-<b><i>max</i><sub>reads</sub> = 3,268,723 </b><br>
-<b><i>min</i><sub>reads</sub> = 163 </b><br>
+<b><i>max</i><sub>reads</sub></b> = 3,268,723 <br>
+<b><i>min</i><sub>reads</sub></b> = 163 <br>
 
 #### 1b. Visualize OTU read counts per elephant sample; run the Rmd chunk below.
 
@@ -149,9 +149,12 @@ In this step, we rarefy the OTU abundance dataset to the lowest number of reads 
 # Load filtered phyloseq object
 load("data/phyloseq.Rda")
 
+# R changed random number seed generation at R v.3.6.0, so this command is needed to rever to old seeds
+RNGkind(sample.kind = "Rounding")
+
 # Read in, combine, and convert QIIME output and metadata to phyloseq format
 phyloseq_rarefied <- rarefy_even_depth(phyloseq, 
-                                       rngsee = 5)
+                                       rngseed = 5)
 
 # Save rarefied OTU abundance data for downstream analyses
 save(phyloseq_rarefied, file = "data/phyloseq_rarefied.Rda")
@@ -159,6 +162,7 @@ save(phyloseq_rarefied, file = "data/phyloseq_rarefied.Rda")
 
 <b> Data filtering results </b>: <br>
 <b><i>read depth</i> = 11,460 </b><br>
+<b><i>N<sub>OTUs</sub></i> = 8,248 </b><br>
 
 ### STEP 3: Summarize OTU abundance across taxonomic levels (i.e., kingdom, phylum, class, and order)
 In this step, we summarize OTU abundance data across four different taxonomic levels (i.e., kingdom, phylum, class, order, etc.) based on prior analysis of taxonomic classification success and confidence; we ultimately summarize OTUs and the core microbiome of elephant samples at the Order level (see Analysis 2).
@@ -171,32 +175,9 @@ In this step, we summarize OTU abundance at the kingdom level.
 # Load rarefied phyloseq object
 load("data/phyloseq_rarefied.Rda")
 
-# Create a data object with otu abundnace data and clean
-otu_abundance <- as.data.frame(t(otu_table(phyloseq_rarefied)))
-
-
-vegan <- decostand(otu_abundance, "total") #standardize abundance data by dividing each number by the total number of samples (individuals in the dataset)
-vegan <- vegdist(vegan, "bray") #calculate Bray-curtis distances between samples
-pcoa <- pcoa(vegan) #calculates principal components
-
-pcoa$vectors
-
-
-pcs <- pcoa$vectors
-pcs <- as.data.frame(pcs)
-pcs <- pcs %>% rownames_to_column("sample_id")
-ggplot(pcs, aes(x = Axis.1, y = Axis.2, label = sample_id)) +
-  geom_point() +
-  geom_text()
-
-
-pcs <- merge(otu_abundance, pcs, by = "otu_id")
-aem_physeq_ado1 <- column_to_rownames(aem_physeq_forest_ncr, "sample_id")
-
-
-
-
-
+# Load sample metadata
+load("../02_data_summary_analysis/data/metadata.Rda")
+  
 # Create a data object with taxonomic classification data and clean
 taxa <- tax_table(phyloseq_rarefied) %>%
   as.data.frame() %>%
@@ -221,19 +202,80 @@ otu_abundance <- merge(otu_abundance,
                        taxa, 
                        by = "otu_id")
 
-
-
-
-
-
-
-
-
-
-
 # Create tall data that can be sorted by taxonomic level
- otu_abundance <- otu_abundance %>%
+otu_abundance <- otu_abundance %>%
   gather(MM69:M10, key = "ind_id", value ="abundance")
+
+# Exclude all taxonomic levels below order and drop NAs (to keep only OTUs that were classified to order level)
+orders <- otu_abundance %>%
+  select(otu_id, kingdom, phylum, class, order, ind_id, species) %>%
+  drop_na()
+
+# Sum read abundance by order
+orders <- orders %>%
+  group_by(order, ind_id, species, raider, habitat) %>%
+  summarize(abundance = sum(abundance))
+
+
+# Plot confidence and proportion of samples per taxonomic level
+pdf("figures/order_composition.pdf", width = 12, height = 4) 
+
+ggplot(orders, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F,) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+dev.off()
+
+# Recreate long dataset so that elephant individuals are columns and orders are rows (for pcoa analysis)
+orders <- orders %>%
+  spread(key = ind_id, value = abundance)
+
+
+
+# Convert first column to row names in preparation for data transposition (next step)
+orders <- column_to_rownames(orders, "order")
+  
+# Create a data object with otu abundnace data and clean
+orders_t <- as.data.frame(t(orders))
+
+vegan <- decostand(orders_t, "total") #standardize abundance data by dividing each number by the total number of samples (individuals in the dataset)
+vegan <- vegdist(vegan, "bray") #calculate Bray-curtis distances between samples
+pcoa <- pcoa(vegan) #calculates principal components
+
+pcoa$vectors
+
+
+pcs <- pcoa$vectors
+pcs <- as.data.frame(pcs)
+pcs <- pcs %>% rownames_to_column("ind_id")
+
+pcs <- merge(pcs, metadata, by = "ind_id")
+
+ggplot(pcs, aes(x = Axis.1, y = Axis.2, label = ind_id, fill = species)) +
+  geom_point() +
+  geom_text()
+
+
+pcs <- merge(otu_abundance, pcs, by = "otu_id")
+aem_physeq_ado1 <- column_to_rownames(aem_physeq_forest_ncr, "sample_id")
+
+
+
+
+
+
+
+
+
+
 
 # Sum read counts for kingdoms
 otu_abundance %>%
@@ -255,8 +297,9 @@ otu_abundance %>%
   group_by(order) %>%
   summarize(reads = sum(abundance))
 ```
+
 ## Data summary at Kingdom level:
-<b><i>reads</i><sub>archae</sub> = 4,818 </b><br>
+<b><i>reads</i><sub>archaea</sub> = 4,818 </b><br>
 <b><i>reads</i><sub>bacteria</sub> = 533,802 </b><br>
 
 ## Data summary at Phylum level:
@@ -281,12 +324,8 @@ otu_abundance %>%
 <b><i>reads</i><sub>wps-2 (bacteria)</sub> = 83 </b><br>
 
 ## Data summary at Class level:
-<b><i>reads</i><sub>archae</sub> = 4,818 </b><br>
-<b><i>reads</i><sub>bacteria</sub> = 533,802 </b><br>
 
 ## Data summary at Order level:
-<b><i>reads</i><sub>archae</sub> = 4,818 </b><br>
-<b><i>reads</i><sub>bacteria</sub> = 533,802 </b><br>
 
 
 # OTU ABUNDANCE - ORDER LEVEL
