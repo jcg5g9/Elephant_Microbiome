@@ -34,7 +34,7 @@ In this step, we read in previously curated metadata for African savana elephant
 #### 1a. Read in and clean sample metadata.
 In this step, we read in the full metadata for all elephants included in the study. Data include: 
 
-   1. "sample_id": a unique, alphanumeric ID for each elephant sample
+   1. "ind_id": a unique, alphanumeric ID for each elephant sample
    2. "barcode": the sequence of nucleotides ligated to elephant metagenomic samples for downstream matching of OTUs to individual
    3. "linker": primer linker sequence
    4. "phylogeny": species of African elephant (L. africana or L. cyclotis)
@@ -42,9 +42,8 @@ In this step, we read in the full metadata for all elephants included in the stu
    6. "habitat": habitat type of the individual (forest or savanna)
    7. "age": general description of the age cohort of the individual (adult, subadult, juvenile)
    8. "sex": sex of the individual (male or female)
-   9. "ind_id": a unique alphanumerical identifier for an individual elephant
-   10. "group": a combined identifier including species, diet, and habitat
-   11. "description": a combined identifier including species, diet, habitat, age, and sex
+   9. "group": a combined identifier including species, diet, and habitat
+   10. "description": a combined identifier including species, diet, habitat, age, and sex
 
 ##### 1a.1. Read in full metadata and convert characters to factors; run the Rmd chunk below.
 
@@ -55,14 +54,14 @@ metadata <- read_tsv("../raw_data/metadata.tsv")
 
 # Convert characters to factors
 metadata <- metadata %>%
-  mutate(barcode = factor(barcode), 
+  mutate(ind_id = factor(ind_id),
+         barcode = factor(barcode), 
          linker = factor(linker), 
          phylogeny = factor(phylogeny), 
          diet = factor(diet), 
          habitat = factor(habitat), 
          age = factor(age), 
          sex = factor(sex), 
-         ind_id = factor(ind_id), 
          group = factor(group), 
          description = factor(description))
 
@@ -332,7 +331,7 @@ dev.off()
 
 This figure is the basis for Figure S1 in the final ms.
 
-Given that Order was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the order level. We summarized OTU data at higher levels where appropriate.
+Given that Order was the lowest (finest scale) taxonomic level at which mean proportion of successful classification (0.9603) and mean confidence of classification (0.9613) were comparable and relatively high, we chose to summarize and assess differences in microbiome composition at the Order level. We summarized OTU data at higher or lower levels (when classifications were made below known orders) where appropriate.
 
 ### ----------------------- END OF PHASE 3: SUMMARY OF TAXONOMIC CLASSIFICATION DATA ----------------------- ###
 

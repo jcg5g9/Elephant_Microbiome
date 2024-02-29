@@ -167,10 +167,10 @@ save(phyloseq_rarefied, file = "data/phyloseq_rarefied.Rda")
 ### STEP 3: Summarize OTU abundance across taxonomic levels (i.e., kingdom, phylum, class, and order)
 In this step, we summarize OTU abundance data across four different taxonomic levels (i.e., kingdom, phylum, class, order, etc.) based on prior analysis of taxonomic classification success and confidence; we ultimately summarize OTUs and the core microbiome of elephant samples at the Order level (see Analysis 2).
 
-#### 3a. Summarize OTU abundance by kingdom, phylum, class, and order; run the Rmd chunk below.
-In this step, we summarize OTU abundance at the kingdom level.
+#### 3a. Generate the full, filtered, and clean dataset; run the Rmd chunk below.
+In this step, we generate a full, filtered, and clean dataset, which merges taxonomic identification of all OTUs, rarefied abundance of OTUs for each African elephant sample, and metadata for each elephant sample. This dataset is saved for all downstream analyses.
 
-##### Rarefy abundance data:
+##### Generate full, filtered, clean dataset for downstream analyses:
 ```{r}
 # Load rarefied phyloseq object
 load("data/phyloseq_rarefied.Rda")
@@ -192,12 +192,12 @@ taxa <- tax_table(phyloseq_rarefied) %>%
          species = factor(Species)) %>%
   select(otu_id, kingdom, phylum, class, order, family, genus, species)
 
-# Create a data object with otu abundnace data and clean
+# Create a data object with otu abundance data and clean
 otu_abundance <- as.data.frame(otu_table(phyloseq_rarefied)) %>%
   rownames_to_column("otu_id") %>%
   mutate(otu_id = factor(otu_id))
 
-# Merge taxonomic classifications with confidence data
+# Merge taxonomic classifications with abundance data
 otu_abundance <- merge(otu_abundance, 
                        taxa, 
                        by = "otu_id")
@@ -206,16 +206,214 @@ otu_abundance <- merge(otu_abundance,
 otu_abundance <- otu_abundance %>%
   gather(MM69:M10, key = "ind_id", value ="abundance")
 
-# Exclude all taxonomic levels below order and drop NAs (to keep only OTUs that were classified to order level)
-orders <- otu_abundance %>%
-  select(otu_id, kingdom, phylum, class, order, ind_id, species) %>%
-  drop_na()
+# Merge taxonomic classifications with elephant sample metadata
+full_data <- merge(otu_abundance, 
+                   metadata, 
+                   by = "ind_id")
+
+# Save full dataset for all downstream analyses
+save(full_data, file = "data/full_data.Rda")
+```
+
+#### 3b. Generate complete dataset (no missing data) at the Order level; run the Rmd chunk below.
+In this step, we filter the full dataset to only include OTUs which were identified to the taxonomic level of Order (see Analysis 2, Step 2). We exclude all OTUs that are not classified to the level of order.
+
+##### Generate complete dataset at order level:
+```{r}
+# Load full data
+load("data/full_data.Rda")
+
+# Include only OTUs classified to order level
+order_data <- full_data %>%
+  drop_na(order)
+
+# Save order dataset for all downstream analyses
+save(order_data, file = "data/order_data.Rda")
+```
+
+#### 3c. Inspect individual microbial composition at the order level within groups of interest to control for outliers; run the Rmd chunk below.
+In this step, we summarize OTU abundance at the order level (see Analysis 2, Step 2) for the fully filtered dataset. We then visually inspect microbial composition at the order level for each individual elephant sample within groups of interest (phylogeny, habitat, and diet) to control for (and eliminate) outliers.
+
+##### 3c.1. Visually inspect order composition by elephant phylogeny; run the Rmd chunk below:
+
+##### Visually inspect order composition by elephant phylogeny: `figures/orders_phylogeny.pdf`
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Get only L. africana samples
+la <- order_data %>%
+  filter(phylogeny == "africana")
+
+# Get only L. cyclotis samples
+lc <- order_data %>%
+  filter(phylogeny == "cyclotis")
+
+# Plot L. africana order composition
+la_plot <- ggplot(la, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot L. cyclotis order composition
+lc_plot <- ggplot(lc, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.y = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot confidence and proportion of samples per taxonomic level
+pdf("figures/orders_phylogeny.pdf", width = 10, height = 4) 
+
+plot_grid(la_plot, 
+          lc_plot,
+          nrow = 1,
+          ncol = 2)
+
+dev.off()
+```
+
+##### 3c.2. Visually inspect order composition by elephant diet; run the Rmd chunk below:
+
+##### Visually inspect order composition by elephant diet: `figures/orders_diet.pdf`
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Get only L. africana samples
+cr <- order_data %>%
+  filter(diet == "Raider")
+
+# Get only L. cyclotis samples
+ncr <- order_data %>%
+  filter(diet == "Nonraider")
+
+# Plot crop raider order composition
+cr_plot <- ggplot(cr, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot non-raider order composition
+ncr_plot <- ggplot(ncr, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.y = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot both plots together
+pdf("figures/orders_diet.pdf", width = 10, height = 4) 
+
+plot_grid(cr_plot, 
+          ncr_plot,
+          nrow = 1,
+          ncol = 2)
+
+dev.off()
+```
+
+##### 3c.2. Visually inspect order composition by elephant habitat; run the Rmd chunk below:
+
+##### Visually inspect order composition by elephant habitat: `figures/orders_habitat.pdf`
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Get only L. africana samples
+s <- order_data %>%
+  filter(habitat == "Savanna")
+
+# Get only L. cyclotis samples
+f <- order_data %>%
+  filter(habitat == "Forest")
+
+# Plot savanna order composition
+s_plot <- ggplot(s, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot forest order composition
+f_plot <- ggplot(f, aes(x = ind_id, y = abundance, fill = order)) + 
+  geom_bar(position = "stack", stat = "identity", show.legend = F) +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Sample ID", y = "OTU abundance") +
+  theme(axis.text = element_text(size = 15)) + 
+  theme(axis.title = element_text(size = 15)) + 
+  theme(axis.text.y = element_blank()) +
+  theme(axis.title.y = element_blank()) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(hjust = 0.95)) +
+  theme(axis.text.x = element_text(vjust = 0.2)) +
+  theme(axis.ticks = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+
+# Plot both plots together
+pdf("figures/orders_habitat.pdf", width = 10, height = 4) 
+
+plot_grid(s_plot, 
+          f_plot,
+          nrow = 1,
+          ncol = 2)
+
+dev.off()
+```
+
+
+
+```{r}
 
 # Sum read abundance by order
-orders <- orders %>%
+order_data <- order_data %>%
   group_by(order, ind_id, species, raider, habitat) %>%
   summarize(abundance = sum(abundance))
+```
 
+#### 3a. Summarize OTU abundance by kingdom, phylum, class, and order; run the Rmd chunk below.
+In this step, we summarize OTU abundance at the kingdom level.
+
+
+
+
+
+```{r}
 
 # Plot confidence and proportion of samples per taxonomic level
 pdf("figures/order_composition.pdf", width = 12, height = 4) 
