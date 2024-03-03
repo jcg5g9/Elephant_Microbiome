@@ -1,5 +1,5 @@
 ---
-title: "Analysis 3: OTU comparative abundance analysis "
+title: "Analysis 3: Core microbiome and differential otu abundance analysis"
 author: "Joe Gunn"
 date: "2024-02-07"
 output: html_document
@@ -253,7 +253,8 @@ lc <- order_data %>%
 la_plot <- ggplot(la, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "L. africana") +
+  theme(plot.title = element_text(size = 15, face = c("bold.italic"))) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.x = element_text(angle = 90)) +
@@ -266,7 +267,8 @@ la_plot <- ggplot(la, aes(x = ind_id, y = abundance, fill = order)) +
 lc_plot <- ggplot(lc, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "L. cyclotis") +
+  theme(plot.title = element_text(size = 15, face = "bold.italic")) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.y = element_blank()) +
@@ -288,6 +290,8 @@ plot_grid(la_plot,
 dev.off()
 ```
 
+This figure was only used for visual inspection during analysis and was not used in the final ms.
+
 ##### 3c.2. Visually inspect order composition by elephant diet; run the Rmd chunk below:
 
 ##### Visually inspect order composition by elephant diet: `figures/orders_diet.pdf`
@@ -307,7 +311,8 @@ ncr <- order_data %>%
 cr_plot <- ggplot(cr, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "Crop raiders") +
+  theme(plot.title = element_text(size = 15, face = "bold")) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.x = element_text(angle = 90)) +
@@ -320,7 +325,8 @@ cr_plot <- ggplot(cr, aes(x = ind_id, y = abundance, fill = order)) +
 ncr_plot <- ggplot(ncr, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "Non-crop raiders") +
+  theme(plot.title = element_text(size = 15, face = "bold")) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.y = element_blank()) +
@@ -342,6 +348,8 @@ plot_grid(cr_plot,
 dev.off()
 ```
 
+This figure was only used for visual inspection during analysis and was not used in the final ms.
+
 ##### 3c.2. Visually inspect order composition by elephant habitat; run the Rmd chunk below:
 
 ##### Visually inspect order composition by elephant habitat: `figures/orders_habitat.pdf`
@@ -361,7 +369,8 @@ f <- order_data %>%
 s_plot <- ggplot(s, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "Savanna") +
+  theme(plot.title = element_text(size = 15, face = "bold")) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.x = element_text(angle = 90)) +
@@ -374,7 +383,8 @@ s_plot <- ggplot(s, aes(x = ind_id, y = abundance, fill = order)) +
 f_plot <- ggplot(f, aes(x = ind_id, y = abundance, fill = order)) + 
   geom_bar(position = "stack", stat = "identity", show.legend = F) +
   theme_set(theme_cowplot(12)) +
-  labs(x = "Sample ID", y = "OTU abundance") +
+  labs(x = "Sample ID", y = "OTU abundance", title = "Forest") +
+  theme(plot.title = element_text(size = 15, face = "bold")) +
   theme(axis.text = element_text(size = 15)) + 
   theme(axis.title = element_text(size = 15)) + 
   theme(axis.text.y = element_blank()) +
@@ -395,6 +405,9 @@ plot_grid(s_plot,
 
 dev.off()
 ```
+
+This figure was only used for visual inspection during analysis and was not used in the final ms.
+
 
 
 

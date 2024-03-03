@@ -1,5 +1,5 @@
 ---
-title: "Analysis 2: Taxonomic classification summary analysis"
+title: "Analysis 2: Taxonomic classification and metadata summary analysis"
 author: "Joe Gunn"
 date: "2024-02-06"
 output: html_document
