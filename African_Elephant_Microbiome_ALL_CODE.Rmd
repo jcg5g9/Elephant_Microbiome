@@ -6,6 +6,14 @@ output: html_document
 ---
 # Libraries
 ```{r}
+df <- read_excel("../../../f0_phenotype_test.xlsx") 
+
+df %>%
+  group_by(lineage, treatment) %>%
+  count()
+
+
+
 library(readxl)
 library(cowplot)
 library(tidyverse)

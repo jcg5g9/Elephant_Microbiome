@@ -62,7 +62,7 @@ In this analysis,
 
 #### Run the code: `02_data_summary_analysis/aegm_data_summary_analysis.Rmd`
 
-### Analysis 3: Core microbiome and differential otu abundance analysis
+### Analysis 3: Core microbiome and differential OTU abundance analysis
 In this analysis, 
 
 #### Run the code: `03_core_microbiome_analysis/aegm_core_microbiome_analysis.Rmd`

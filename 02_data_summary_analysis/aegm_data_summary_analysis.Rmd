@@ -70,7 +70,7 @@ save(metadata, file = "data/metadata.Rda")
 ```
 
 #### 1b. Read in and clean taxonomic classifcation data for metagenomic sequences of microbial OTUs.
-In this step, we read in the full taxonomic classification data (`../raw_data/taxa.qza`) for metagenomic sequences of microbial OTUs, which is generated in QIIME (see QIIME pipeline code in Analysis 1).  Initial sequence read counts varied among African elephant samples (mean = 141,563, min = 271, max = 3,586,017). These reads were identified as 9,066 distinct OTUs from unique sequence reads at 99% similarity. Data include: 
+In this step, we read in the full taxonomic classification data (`../raw_data/taxa.qza`) for metagenomic sequences of microbial OTUs, which is generated in QIIME (see QIIME pipeline code in Analysis 1). Initial sequence read counts varied among African elephant samples (mean = 141,563, min = 271, max = 3,586,017). These reads were identified as 9,066 distinct OTUs from unique sequence reads at 99% similarity. Data include: 
 
    1. "Feature.ID": a unique, alphanumeric ID for each OTU detected across the full dataset
    2. "Taxon": the taxonomic classificaiton for each OTU detected across the full dataset

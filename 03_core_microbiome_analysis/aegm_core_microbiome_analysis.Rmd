@@ -1,5 +1,5 @@
 ---
-title: "Analysis 3: Core microbiome and differential otu abundance analysis"
+title: "Analysis 3: Core microbiome and differential OTU abundance analysis"
 author: "Joe Gunn"
 date: "2024-02-07"
 output: html_document
@@ -8,8 +8,8 @@ output: html_document
 # Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
 
-## Specific Aim: Comparing OTU abundance among African elephant sample groups (phylogeny, diet, and habitat) at multiple taxonomic levels
-In this analysis, 
+## Specific Aim: Assessing the core microbiome and differential OTU abundance of African elephant sample groups (phylogeny, diet, and habitat) 
+In this analysis, we characterize the core microbial composition of African elephant individuals within groups of interest (phylogeny, diet, and habitat) at the Order level (see Analysis 2): Orders that are present in 100% of samples within a given group. For each group of interest, we control for all other groups to identify these orders. Then, we assess differential OTU abundance between
 
 ## Phases of analysis:
 ### Phase 1: Data read-in, filtering, rarefaction, and summarization
@@ -408,23 +408,63 @@ dev.off()
 
 This figure was only used for visual inspection during analysis and was not used in the final ms.
 
+In general, we did not visually detect any outlier samples driving extreme order differentation among groups of interest (i.e., phylogeny, habitat, diet). Thus, we included all samples in core microbiome analysis.
+
+### STEP 4. Summarize core microbiome by phylogeny, diet, and habitat
+In this step, we use the full order dataset (all OTUs classified to the level of Order) to characterize the core microbiome of each group of 
+
+#### 4a. Characterize the core microbiome by phylogeny (L. africana or L. cyclotis); run the Rmd chunk below:
+
+##### Characterize core microbiome by phylogeny:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna elephants
+savanna <- order_data %>%
+  filter(phylogeny == "africana")
+
+# Get the total number of individual savanna elephants
+n_ind <- length(unique(savanna$ind_id))
+
+# Filter out only savanna elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+savanna <- order_data %>%
+  filter(phylogeny == "africana") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+savanna_core <- savanna %>%
+  filter(order_proportion == 1.00000000)
+```
 
 
 
 ```{r}
+  
+savanna <- savanna %>%
+  spread(order, abundance)
 
-# Sum read abundance by order
-order_data <- order_data %>%
-  group_by(order, ind_id, species, raider, habitat) %>%
-  summarize(abundance = sum(abundance))
+savanna <- savanna[,-c(3:9,11:12)]
+
+savanna <- savanna %>%
+  spread(otu_id, abundance)
+
+savanna[, colSums(savanna == 0) == 0]
+
+forest <- order_data %>%
+  filter(phylogeny == "cyclotis")
+
+forest <- forest[,-c(3:9,11:12)]
+
+forest <- forest %>%
+  spread(otu_id, abundance)
+
+forest[, colSums(forest == 0) == 0]
 ```
-
-#### 3a. Summarize OTU abundance by kingdom, phylum, class, and order; run the Rmd chunk below.
-In this step, we summarize OTU abundance at the kingdom level.
-
-
-
-
 
 ```{r}
 
