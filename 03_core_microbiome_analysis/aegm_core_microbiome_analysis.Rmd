@@ -21,9 +21,9 @@ library(readxl)
 library(cowplot)
 library(tidyverse)
 library(phyloseq)
-library(qiime2R)
-library(vegan)
-library(ape)
+#library(qiime2R)
+#library(vegan)
+#library(ape)
 ```
 
 ## PHASE 1: DATA READ-IN, FILTERING, RAREFACTION, AND SUMMARIZATION
@@ -149,7 +149,7 @@ In this step, we rarefy the OTU abundance dataset to the lowest number of reads 
 # Load filtered phyloseq object
 load("data/phyloseq.Rda")
 
-# R changed random number seed generation at R v.3.6.0, so this command is needed to rever to old seeds
+# R changed random number seed generation at R v.3.6.0, so this command is needed to revert to old seeds
 RNGkind(sample.kind = "Rounding")
 
 # Read in, combine, and convert QIIME output and metadata to phyloseq format
@@ -165,7 +165,7 @@ save(phyloseq_rarefied, file = "data/phyloseq_rarefied.Rda")
 <b><i>N<sub>OTUs</sub></i> = 8,248 </b><br>
 
 ### STEP 3: Summarize OTU abundance across taxonomic levels (i.e., kingdom, phylum, class, and order)
-In this step, we summarize OTU abundance data across four different taxonomic levels (i.e., kingdom, phylum, class, order, etc.) based on prior analysis of taxonomic classification success and confidence; we ultimately summarize OTUs and the core microbiome of elephant samples at the Order level (see Analysis 2).
+In this step, we summarize OTU abundance data across four different taxonomic levels (i.e., kingdom, phylum, class, order) based on prior analysis of taxonomic classification success and confidence; we ultimately summarize OTUs and the core microbiome of elephant samples at the order level (see Analysis 2).
 
 #### 3a. Generate the full, filtered, and clean dataset; run the Rmd chunk below.
 In this step, we generate a full, filtered, and clean dataset, which merges taxonomic identification of all OTUs, rarefied abundance of OTUs for each African elephant sample, and metadata for each elephant sample. This dataset is saved for all downstream analyses.
@@ -411,11 +411,16 @@ This figure was only used for visual inspection during analysis and was not used
 In general, we did not visually detect any outlier samples driving extreme order differentation among groups of interest (i.e., phylogeny, habitat, diet). Thus, we included all samples in core microbiome analysis.
 
 ### STEP 4. Summarize core microbiome by phylogeny, diet, and habitat
-In this step, we use the full order dataset (all OTUs classified to the level of Order) to characterize the core microbiome of each group of 
+In this step, we use the full order dataset (all OTUs classified to the level of Order) to characterize the core microbiome of each group of interest.
 
-#### 4a. Characterize the core microbiome by phylogeny (L. africana or L. cyclotis); run the Rmd chunk below:
+#### 4a. Characterize the core microbiome by phylogeny (<i>L. africana</i> or <i>L. cyclotis</i>).
+In this step, we characterize the core microbiome of each phylogenetic group in the data (African savanna elephants, African forest elephants). First, we identify the core microbiome of all individuals within each group (Steps 4a.1 and 4a.2). Next, we directly compare the phylogenetic groups by controlling for diet and habitat. Since All Forest individuals are non-crop-raiding and live in forest habitat, we filter out only non-crop-raiding Savanna elephants found in forest habitat (Step 4a.3).
 
-##### Characterize core microbiome by phylogeny:
+All core microbiome proportions are the basis for Table S2 in the final manuscript.
+
+##### 4a.1. Characterize the core microbiome of all <i>L. africana</i>; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i>:
 ```{r}
 # Load order dataset
 load("data/order_data.Rda")
@@ -437,9 +442,196 @@ savanna <- order_data %>%
   count() %>%
   summarize(order_proportion = n/n_ind)
 
+# Filter out only the core microbiome (orders with 100% presence across savanna elephant samples)
 savanna_core <- savanna %>%
   filter(order_proportion == 1.00000000)
 ```
+
+##### 4a.2. Characterize the core microbiome of all <i>L. cyclotis</i>; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. cyclotis</i>:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only forest elephants
+forest <- order_data %>%
+  filter(phylogeny == "cyclotis")
+
+# Get the total number of individual forest elephants
+n_ind <- length(unique(forest$ind_id))
+
+# Filter out only forest elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+forest <- order_data %>%
+  filter(phylogeny == "cyclotis") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across forest elephant samples)
+forest_core <- forest %>%
+  filter(order_proportion == 1.00000000)
+```
+
+##### 4a.3. Characterize the core microbiome of only <i>L. africana</i> that were collected from forest habitat; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i> from forest habitat:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna forest elephants
+savanna_forest <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest" & diet == "Nonraider") 
+
+# Get the total number of individual savanna forest elephants
+n_ind <- length(unique(savanna_forest$ind_id))
+
+# Filter out only savanna forest elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+savanna_forest <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest" & diet == "Nonraider") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across savanna forest elephant samples)
+savanna_forest_core <- savanna_forest %>%
+  filter(order_proportion == 1.00000000)
+```
+
+#### 4b. Characterize the core microbiome by diet (crop-raider or non-crop-raider).
+In this step, we characterize the core microbiome of each diet group in the data (crop-radiers, non-crop-raiders). We assess diets only within African savanna elephants to control for phylogeny, and we identify the core microbiome of all individuals within each group. We do not control for habitat in order to maintain reasonable sample sizes for comparison.
+
+All core microbiome proportions are the basis for Table S2 in the final manuscript.
+
+##### 4b.1. Characterize the core microbiome of all <i>L. africana</i> crop-raiders; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i> crop-raiders:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna crop-raiding elephants
+raider <- order_data %>%
+  filter(phylogeny == "africana" & diet == "Raider") 
+
+# Get the total number of individual savanna crop-raiding elephants
+n_ind <- length(unique(raider$ind_id))
+
+# Filter out only savanna crop-raiding elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+raider <- order_data %>%
+  filter(phylogeny == "africana" & diet == "Raider") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across savanna crop-raiding elephant samples)
+raider_core <- raider %>%
+  filter(order_proportion == 1.00000000)
+```
+
+##### 4b.2. Characterize the core microbiome of all <i>L. africana</i> non-crop-raiders; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i> non-crop-raiders:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna non-crop-raider elephants
+nonraider <- order_data %>%
+  filter(phylogeny == "africana" & diet == "Nonraider")
+
+# Get the total number of individual savanna non-crop-raiding elephants
+n_ind <- length(unique(nonraider$ind_id))
+
+# Filter out only savanna non-crop-raiding elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+nonraider <- order_data %>%
+  filter(phylogeny == "africana" & diet == "Nonraider") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across savanna non-crop-raiding elephant samples)
+nonraider_core <- nonraider %>%
+  filter(order_proportion == 1.00000000)
+```
+
+#### 4c. Characterize the core microbiome by habitat (savanna or forest).
+In this step, we characterize the core microbiome of each habitat group in the data (savanna, forest). We assess habitats only within African savanna elephants to control for phylogeny, and we identify the core microbiome of all individuals within each group. We do not control for diet in order to maintain reasonable sample sizes for comparison.
+
+All core microbiome proportions are the basis for Table S2 in the final manuscript.
+
+##### 4c.1. Characterize the core microbiome of all <i>L. africana</i> savanna dwellers; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i> savanna dwellers:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna savanna-dwelling elephants
+savanna <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Savanna") 
+
+# Get the total number of individual savanna savanna-dwelling elephants
+n_ind <- length(unique(savanna$ind_id))
+
+# Filter out only savanna savanna-dwelling  elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+savanna <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Savanna") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across savanna savanna-dwelling elephant samples)
+savanna_core <- savanna %>%
+  filter(order_proportion == 1.00000000)
+```
+
+##### 4b.2. Characterize the core microbiome of all <i>L. africana</i> forest dwellers; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. africana</i> forest dwellers:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only savanna forest-dwelling elephants
+forest <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest")
+
+# Get the total number of individual savanna forest-dwelling elephants
+n_ind <- length(unique(forest$ind_id))
+
+# Filter out only savanna forest-dwelling elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+forest <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across savanna forest-dwelling elephant samples)
+forest_core <- forest %>%
+  filter(order_proportion == 1.00000000)
+```
+
+
 
 
 
