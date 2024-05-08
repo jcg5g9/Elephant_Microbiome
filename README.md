@@ -58,19 +58,19 @@ In this analysis, we processed raw 16S rRNA metagenomic sequence read files (.fa
 #### Run the code: `01_bioinformatic_analysis/aegm_bioinformatic_analysis.Rmd`
 
 ### Analysis 2: Taxonomic classification and metadata summary analysis
-In this analysis,
+In this analysis, we read in, filter, and clean the raw metadata (i.e., information about species, diet, and habitat) and taxonomic classification for microbial operational taxonomic units (OTUs) for our African elephant samples. After we prepare data, we summarize the taxonomic classification data, specifically to determine the proportion of bacterial OTUs classified to each taxonomic group and the confidence of classification. We then give a wholistic and broken-down summary of our elephant fecal samples, including sample numbers within species, diet treatments, and habitats.
 
 #### Run the code: `02_data_summary_analysis/aegm_data_summary_analysis.Rmd`
 
-### Analysis 3: Core microbiome and differential OTU abundance analysis
-In this analysis, 
+### Analysis 3: Global and core microbiome analysis
+In this analysis, we characterize the core microbial composition of African elephant individuals within groups of interest (phylogeny, diet, and habitat) at the Order level (see Analysis 2): Orders that are present in 100% of samples within a given group. For each group of interest, we control for all other groups to identify these orders. Then, we assess differential OTU abundance between
 
 #### Run the code: `03_core_microbiome_analysis/aegm_core_microbiome_analysis.Rmd`
 
-### Analysis 4: Population Inference
-In this analysis, we used the finerad.vcf data generated in Analysis 2 (SNP Filtering...) to assess fine-scale coancestry between Smallmouth Bass, and Neosho Bass in the CIH using haplotype inference (excluding Spotted Bass). Specifically, we estimated coancestry in 1) the full dataset, with all pure and admixed individuals, excluding the Spotted Bass X Smallmouth Bass hybrid (BFC10) inferred from population genomic analysis in Analysis 3, 2) the pure dataset, with only pure individuals of Smallmouth Bass and Neosho Bass, and 3) the admixed dataset, with only admixed individuals of Neosho Bass (no admixed Smallmouth Bass were detected).
+### Analysis 4: Microbiome diversity and differential OTU abundnace analysis
+In this analysis, 
 
-#### Run the code: `04_population_analysis/smb_genomics_population_analysis.Rmd`
+#### Run the code: `04_microbiome_diversity_analysis/aegm_microbiome_diversity_analysis.Rmd`
 
 ### Analysis 5: Admixture Mapping
 In this analysis, we used the popgen.vcf data generated in Analysis 2 (SNP Filtering...) to assess assess the relative timing of admixture events between Smallmouth Bass and Neosho Bass. Specifically, we used moment statistics in MatLab with the software program MIXMAPPER to build a scaffold phylogeny with significantly pure (non-admixed) populations (based on our <i>a posteriori</i>) discovered populations in Analysis 4) and to map significantly admixed populations (also based on our discovered populations in Analysis 4) onto the tree. 

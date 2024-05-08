@@ -1,0 +1,41 @@
+---
+title: "Analysis 3: Global and core microbiome analysis"
+author: "Joe Gunn"
+date: "2024-02-07"
+output: html_document
+---
+
+# Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
+We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
+
+## Specific Aim: Assessing the global (full data) and core (shared) microbiome of African elephant sample groups (phylogeny, diet, and habitat) 
+In this analysis, we characterize the core microbial composition of African elephant individuals within groups of interest (phylogeny, diet, and habitat) at the Order level (see Analysis 2): Orders that are present in 100% of samples within a given group. For each group of interest, we control for all other groups to identify these orders. Then, we assess differential OTU abundance between
+
+## Phases of analysis:
+### Phase 1: Data read-in, filtering, rarefaction, and summarization
+### Phase 2: Summary of OTU abundance data and core microbiome
+
+## Libraries needed for analysis
+```{r}
+library(readxl)
+library(cowplot)
+library(tidyverse)
+library(phyloseq)
+library(lme4)
+library(car)
+library(multcomp)
+#library(qiime2R)
+#library(vegan)
+#library(ape)
+```
+
+## PHASE 1: DATA READ-IN, FILTERING, RAREFACTION, AND SUMMARIZATION
+In this phase of the analysis, we read in raw data from bioinformatic analyses in QIIME, filter the raw OTU and taxonomic classification data, rarefy read counts, and summarize the full microbiome dataset.
+
+### STEP 1: Summarize OTU abundance across samples and filter samples with low read-count for rarefaction
+In this step, we summarize OTU abundance at the elephant sample level (i.e., how many individual sequence reads were detected per OTU within each elephant sample) to determine average read-count and to identify any outliers (i.e., either extremely high or low read counts). We use the raw phyloseq object with taxonomic classification, OTU abundance, phylogenetic relationship, and metadata. We calculate the sum of read counts across all OTUs within each sample. Ultimately, we need to rarefy the abundance to an even read depth per sample to limit observation bias; for this reason, we want to omit any samples with extremely low read-counts, because we do not want to rarefy the dataset to an extremely low read count.
+
+
+
+
+### ----------------------- END OF ANALYSIS 4: MICROBIOME DIVERSITY AND DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
