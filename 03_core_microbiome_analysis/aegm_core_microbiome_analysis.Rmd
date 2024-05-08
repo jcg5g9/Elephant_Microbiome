@@ -408,13 +408,290 @@ dev.off()
 
 This figure was only used for visual inspection during analysis and was not used in the final ms.
 
-In general, we did not visually detect any outlier samples driving extreme order differentation among groups of interest (i.e., phylogeny, habitat, diet). Thus, we included all samples in core microbiome analysis.
+We detected only one potential outlier sample (M10, <i>L. cyclotis</i>) driving extreme order differentation among groups of interest (i.e., phylogeny). We excluded this sample to identify the core microbiome of <i>L. cyclotis</i> but retained this individual for all downstream analyses.
+
+#### 3d. Summarize OTU proportions at four broadest taxonomic levels (kindgom, phylum, class, order) within each group of interest.
+In this step, we calculate the proportion of the total microbiome represented by each present taxonomic group within kingdoms, phyla, classes, and orders in the sample set. We then break these proportions down by phylogeny, diet, and habitat for direct comparison of microbiota among groups. 
+
+We ultimately present proportions of microbial OTUs at the phylum and order levels, giving relative proportions of each phylum and order across the full microbiome dataset, as well as the relative proportions of each order within each phylum. These summary statistics are the basis for Table S1 in the final manuscript. 
+
+##### 3d.1. Summarize OTU proportions within groups in <i>L. africana</i>.
+
+###### 3d.1.1. Summarize OTU abundance across taxanomic groups in savanna-dwelling, non-crop-riading <i>L. africana</i>; run the Rmd chunk below.
+
+##### Summarize OTU abundance in savanna-dwelling, non-crop-riading <i>L. africana</i>
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Set scipen options to remove scientific notation
+options(scipen = 999)
+
+# Get only L. africana savanna-dwelling samples
+africana_savanna <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Savanna" & diet == "Nonraider")
+
+# Calculate total microbial abundance across samples
+total_abundance <- sum(africana_savanna$abundance)
+
+# Get kingdom proportions
+kingdom <- africana_savanna %>%
+  group_by(kingdom) %>%
+  summarize(kingdom_abundance = sum(abundance),
+            kingdom_proportion = kingdom_abundance/total_abundance,
+            kingdom_percent = kingdom_proportion*100)
+
+# Get phylum proportions (within kingdoms)
+phylum <- africana_savanna %>%
+  group_by(kingdom, phylum) %>%
+  summarize(phylum_abundance = sum(abundance),
+            phylum_proportion = phylum_abundance/total_abundance,
+            phylum_percent = phylum_proportion*100)
+
+# Get class proportions (within phyla)
+class <- africana_savanna %>%
+  group_by(phylum, class) %>%
+  summarize(class_abundance = sum(abundance),
+            class_proportion = class_abundance/total_abundance,
+            class_percent = class_proportion*100)
+
+# Get order proportions (within phyla; we aren't interested in class at this point)
+order <- africana_savanna %>%
+  group_by(phylum, order) %>%
+  summarize(order_abundance = sum(abundance),
+            order_proportion = order_abundance/total_abundance,
+            order_percent = order_proportion*100)
+  
+# Join phylum and order proportions
+full_abundance <- full_join(order, phylum, by = "phylum")
+
+# Calculate proportion of each phylum constituted by each order 
+full_abundance %>% 
+  group_by(phylum, order) %>%
+  summarize(order_percent = order_abundance/phylum_abundance*100)
+```
+
+###### 3d.1.2. Summarize OTU abundance across taxanomic groups in savanna-dwelling, crop-riading <i>L. africana</i>; run the Rmd chunk below.
+
+##### Summarize OTU abundance in savanna-dwelling, crop-riading <i>L. africana</i>
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Set scipen options to remove scientific notation
+options(scipen = 999)
+
+# Get only L. africana savanna-dwelling, crop-raiding samples
+africana_raider <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Savanna" & diet == "Raider")
+
+# Calculate total microbial abundance across samples
+total_abundance <- sum(africana_raider$abundance)
+
+# Get kingdom proportions
+africana_raider %>%
+  group_by(kingdom) %>%
+  summarize(kingdom_abundance = sum(abundance),
+            kingdom_proportion = kingdom_abundance/total_abundance,
+            kingdom_percent = kingdom_proportion*100)
+
+# Get phylum proportions (within kingdoms)
+africana_raider %>%
+  group_by(kingdom, phylum) %>%
+  summarize(phylum_abundance = sum(abundance),
+            phylum_proportion = phylum_abundance/total_abundance,
+            phylum_percent = phylum_proportion*100)
+
+# Get class proportions (within phyla)
+africana_raider %>%
+  group_by(phylum, class) %>%
+  summarize(class_abundance = sum(abundance),
+            class_proportion = class_abundance/total_abundance,
+            class_percent = class_proportion*100)
+
+# Get order proportions (within phyla; we aren't interested in class at this point)
+africana_raider %>%
+  group_by(phylum, order) %>%
+  summarize(order_abundance = sum(abundance),
+            order_proportion = order_abundance/total_abundance,
+            order_percent = order_proportion*100)
+
+# Join phylum and order proportions
+full_abundance <- full_join(order, phylum, by = "phylum")
+
+# Calculate proportion of each phylum constituted by each order 
+full_abundance %>% 
+  group_by(phylum, order) %>%
+  summarize(order_percent = order_abundance/phylum_abundance*100)
+```
+
+###### 3d.1.3. Summarize OTU abundance across taxanomic groups in forest-dwelling, non-crop-riading <i>L. africana</i>; run the Rmd chunk below.
+
+##### Summarize OTU abundance in forest-dwelling, non-crop-riading <i>L. africana</i>
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Set scipen options to remove scientific notation
+options(scipen = 999)
+
+# Get only L. africana forest-dwelling, non-crop-raiding samples
+africana_forest <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest" & diet == "Nonraider")
+
+# Calculate total microbial abundance across samples
+total_abundance <- sum(africana_forest$abundance)
+
+# Get kingdom proportions
+africana_forest %>%
+  group_by(kingdom) %>%
+  summarize(kingdom_abundance = sum(abundance),
+            kingdom_proportion = kingdom_abundance/total_abundance,
+            kingdom_percent = kingdom_proportion*100)
+
+# Get phylum proportions (within kingdoms)
+africana_forest %>%
+  group_by(kingdom, phylum) %>%
+  summarize(phylum_abundance = sum(abundance),
+            phylum_proportion = phylum_abundance/total_abundance,
+            phylum_percent = phylum_proportion*100)
+
+# Get class proportions (within phyla)
+africana_forest %>%
+  group_by(phylum, class) %>%
+  summarize(class_abundance = sum(abundance),
+            class_proportion = class_abundance/total_abundance,
+            class_percent = class_proportion*100)
+
+# Get order proportions (within phyla; we aren't interested in class at this point)
+africana_forest %>%
+  group_by(phylum, order) %>%
+  summarize(order_abundance = sum(abundance),
+            order_proportion = order_abundance/total_abundance,
+            order_percent = order_proportion*100)
+
+# Join phylum and order proportions
+full_abundance <- full_join(order, phylum, by = "phylum")
+
+# Calculate proportion of each phylum constituted by each order 
+full_abundance %>% 
+  group_by(phylum, order) %>%
+  summarize(order_percent = order_abundance/phylum_abundance*100)
+```
+###### 3d.1.3. Summarize OTU abundance across taxanomic groups in forest-dwelling, non-crop-riading <i>L. africana</i>; run the Rmd chunk below.
+
+##### Summarize OTU abundance in forest-dwelling, crop-riading <i>L. africana</i>
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Set scipen options to remove scientific notation
+options(scipen = 999)
+
+# Get only L. africana forest-dwelling, crop-raiding samples
+africana_forest_raider <- order_data %>%
+  filter(phylogeny == "africana" & habitat == "Forest" & diet == "Raider")
+
+# Calculate total microbial abundance across samples
+total_abundance <- sum(africana_forest_raider$abundance)
+
+# Get kingdom proportions
+africana_forest_raider %>%
+  group_by(kingdom) %>%
+  summarize(kingdom_abundance = sum(abundance),
+            kingdom_proportion = kingdom_abundance/total_abundance,
+            kingdom_percent = kingdom_proportion*100)
+
+# Get phylum proportions (within kingdoms)
+africana_forest_raider %>%
+  group_by(kingdom, phylum) %>%
+  summarize(phylum_abundance = sum(abundance),
+            phylum_proportion = phylum_abundance/total_abundance,
+            phylum_percent = phylum_proportion*100)
+
+# Get class proportions (within phyla)
+africana_forest_raider %>%
+  group_by(phylum, class) %>%
+  summarize(class_abundance = sum(abundance),
+            class_proportion = class_abundance/total_abundance,
+            class_percent = class_proportion*100)
+
+# Get order proportions (within phyla; we aren't interested in class at this point)
+africana_forest_raider %>%
+  group_by(phylum, order) %>%
+  summarize(order_abundance = sum(abundance),
+            order_proportion = order_abundance/total_abundance,
+            order_percent = order_proportion*100)
+
+# Join phylum and order proportions
+full_abundance <- full_join(order, phylum, by = "phylum")
+
+# Calculate proportion of each phylum constituted by each order 
+full_abundance %>% 
+  group_by(phylum, order) %>%
+  summarize(order_percent = order_abundance/phylum_abundance*100)
+```
+##### 3d.2. Summarize OTU proportions within groups in <i>L. cyclotis</i>.
+
+###### 3d.2.1. Summarize OTU abundance across taxanomic groups in <i>L. cyclotis</i>; run the Rmd chunk below.
+
+##### Summarize OTU abundance in <i>L. cyclotis</i>
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Set scipen options to remove scientific notation
+options(scipen = 999)
+
+# Get only L. cyclotis samples
+cyclotis <- order_data %>%
+  filter(phylogeny == "cyclotis")
+
+# Calculate total microbial abundance across samples
+total_abundance <- sum(cyclotis$abundance)
+
+# Get kingdom proportions
+cyclotis %>%
+  group_by(kingdom) %>%
+  summarize(kingdom_abundance = sum(abundance),
+            kingdom_proportion = kingdom_abundance/total_abundance,
+            kingdom_percent = kingdom_proportion*100)
+
+# Get phylum proportions (within kingdoms)
+cyclotis %>%
+  group_by(kingdom, phylum) %>%
+  summarize(phylum_abundance = sum(abundance),
+            phylum_proportion = phylum_abundance/total_abundance,
+            phylum_percent = phylum_proportion*100)
+
+# Get class proportions (within phyla)
+cyclotis %>%
+  group_by(phylum, class) %>%
+  summarize(class_abundance = sum(abundance),
+            class_proportion = class_abundance/total_abundance,
+            class_percent = class_proportion*100)
+
+# Get order proportions (within phyla; we aren't interested in class at this point)
+cyclotis %>%
+  group_by(phylum, order) %>%
+  summarize(order_abundance = sum(abundance),
+            order_proportion = order_abundance/total_abundance,
+            order_percent = order_proportion*100)
+
+# Join phylum and order proportions
+full_abundance <- full_join(order, phylum, by = "phylum")
+
+# Calculate proportion of each phylum constituted by each order 
+full_abundance %>% 
+  group_by(phylum, order) %>%
+  summarize(order_percent = order_abundance/phylum_abundance*100)
+```
 
 ### STEP 4. Summarize core microbiome by phylogeny, diet, and habitat
 In this step, we use the full order dataset (all OTUs classified to the level of Order) to characterize the core microbiome of each group of interest.
 
 #### 4a. Characterize the core microbiome by phylogeny (<i>L. africana</i> or <i>L. cyclotis</i>).
-In this step, we characterize the core microbiome of each phylogenetic group in the data (African savanna elephants, African forest elephants). First, we identify the core microbiome of all individuals within each group (Steps 4a.1 and 4a.2). Next, we directly compare the phylogenetic groups by controlling for diet and habitat. Since All Forest individuals are non-crop-raiding and live in forest habitat, we filter out only non-crop-raiding Savanna elephants found in forest habitat (Step 4a.3).
+In this step, we characterize the core microbiome of each phylogenetic group in the data (African savanna elephants, African forest elephants). First, we identify the core microbiome of all individuals within each group (Steps 4a.1- 4a.3). Next, we directly compare the phylogenetic groups by controlling for diet and habitat. Since All Forest individuals are non-crop-raiding and live in forest habitat, we filter out only non-crop-raiding Savanna elephants found in forest habitat (Step 4a.4).
 
 All core microbiome proportions are the basis for Table S2 in the final manuscript.
 
@@ -476,7 +753,38 @@ forest_core <- forest %>%
   filter(order_proportion == 1.00000000)
 ```
 
-##### 4a.3. Characterize the core microbiome of only <i>L. africana</i> that were collected from forest habitat; run the Rmd chunk below.
+##### 4a.3. Characterize the core microbiome of all <i>L. cyclotis</i> without individual M10; run the Rmd chunk below.
+
+##### Characterize core microbiome of <i>L. cyclotis</i> without sample M10:
+```{r}
+# Load order dataset
+load("data/order_data.Rda")
+
+# Filter only forest elephants
+forest <- order_data %>%
+  filter(phylogeny == "cyclotis") %>%
+  filter(ind_id != "M10")
+
+# Get the total number of individual forest elephants
+n_ind <- length(unique(forest$ind_id))
+
+# Filter out only forest elephants, select individual id, order, and abundance, and summarize abundance by order within individuals
+forest <- order_data %>%
+  filter(phylogeny == "cyclotis") %>%
+  filter(ind_id != "M10") %>%
+  select(ind_id, order, abundance) %>%
+  group_by(order, ind_id) %>%
+  summarize(abundance = sum(abundance)) %>%
+  filter(abundance != "0") %>%
+  count() %>%
+  summarize(order_proportion = n/n_ind)
+
+# Filter out only the core microbiome (orders with 100% presence across forest elephant samples)
+forest_core <- forest %>%
+  filter(order_proportion == 1.00000000)
+```
+
+##### 4a.4. Characterize the core microbiome of only <i>L. africana</i> that were collected from forest habitat; run the Rmd chunk below.
 
 ##### Characterize core microbiome of <i>L. africana</i> from forest habitat:
 ```{r}
