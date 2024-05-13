@@ -9,15 +9,13 @@
 We characterized the Afican elephant gut microbiome (aka, A.E.G.M.), specifically of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
 
 ## General information on repository structure
-This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Budd & Gunn et al. (2020). In the home directory of the repository (Elephant_Microbiome), you will find a README.md file (the source script for this information), the R Project file (Elephant_Microbiome.Rproj), a .gitignore file, and [number] different "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
+This is a publicly visible GitHub repository storing code (and a small amount of data, although we have done our best to avoid uploading large amounts of data due to the limited storage in GitHub) for Budd & Gunn et al. (2020). In the home directory of the repository (Elephant_Microbiome), you will find a README.md file (the source script for this information), the R Project file (Elephant_Microbiome.Rproj), a .gitignore file, and five different "analysis" directories, each of which corresponds with a specific analysis conducted in our study:
 
 1) 01_bioinformatic_analysis
 2) 02_data_summary_analysis
 3) 03_core_microbiome_analysis
-4) 04_
-5) 05_
-6) 06_
-7) 07_
+4) 04_microbiome_diversity_analysis
+5) 05_functional_microbiome_analysis
 
 Within each analysis directory, you will find an R markdown script (.Rmd) with the name of the analysis, which contains all of the code needed to run the full analysis. Additionally, you will find one:
 
@@ -63,26 +61,17 @@ In this analysis, we read in, filter, and clean the raw metadata (i.e., informat
 #### Run the code: `02_data_summary_analysis/aegm_data_summary_analysis.Rmd`
 
 ### Analysis 3: Global and core microbiome analysis
-In this analysis, we characterize the core microbial composition of African elephant individuals within groups of interest (phylogeny, diet, and habitat) at the Order level (see Analysis 2): Orders that are present in 100% of samples within a given group. For each group of interest, we control for all other groups to identify these orders. Then, we assess differential OTU abundance between
+In this analysis, we characterize the core microbial composition of African elephant individuals within groups of interest (phylogeny, diet, and habitat) at the Order level (see Analysis 2): Orders that are present in 100% of samples within a given group. For each group of interest, we control for all other groups to identify these orders. 
 
 #### Run the code: `03_core_microbiome_analysis/aegm_core_microbiome_analysis.Rmd`
 
 ### Analysis 4: Microbiome diversity and differential OTU abundnace analysis
-In this analysis, 
+In this analysis, we assess differential abundance in relatively highly represented OTUs (i.e., within the most highly represented phyla) across African elephant sample groups of interest (phylogeny, diet, and habitat) to determine whether any major taxonomic groups explain variation between groups. We then assess both within-group (alpha) microbial diversity and between-group (beta) microbial diversity to determine whether there are overarching differences in microbiome structure and composition among elephant groups.  
 
 #### Run the code: `04_microbiome_diversity_analysis/aegm_microbiome_diversity_analysis.Rmd`
 
-### Analysis 5: Admixture Mapping
-In this analysis, we used the popgen.vcf data generated in Analysis 2 (SNP Filtering...) to assess assess the relative timing of admixture events between Smallmouth Bass and Neosho Bass. Specifically, we used moment statistics in MatLab with the software program MIXMAPPER to build a scaffold phylogeny with significantly pure (non-admixed) populations (based on our <i>a posteriori</i>) discovered populations in Analysis 4) and to map significantly admixed populations (also based on our discovered populations in Analysis 4) onto the tree. 
+### Analysis 5: Functional microbiome analysis
+In this analysis,
 
-#### Run the code: `05_admixture_mapping_analysis/smb_genomics_admixture_mapping_analysis.Rmd`
+#### Run the code: `05_functional_microbiome_analysis/aegm_functional_microbiome_analysis.Rmd`
 
-## Analysis 6: Directional selection analysis
-In this analysis, we used the popgen.vcf data generated in Analysis 2 (SNP Filtering...) to scan for signatures of directional selection on SNP loci with outlier Fst (high outlier Fst: directional selection; low Fst: balancing selection). We used two software programs with different underlying statistical frameworks to detect outliers and then used any outliers commonly detected in both analyses as canditates for being under strong selection. Specifically, we used the software program BAYESCAN (based in Bayesian analysis) and the R package PCAdapt principal component analysis (based in multivariate principal component analysis). We then employed DAPC in R to map patterns of population differentiation at any shared outlier and neutral loci to detect populations that may be under differential selection pressures and to detect signatures of genetic drift,
-
-#### Run the code: `06_outlier_fst_analysis/smb_genomics_outlier_fst_analysis.Rmd`
-
-## Analysis 7: Demographic analysis
-In this analysis, we investigated the demographic history of populations found to be admixed between Smallmouth Bass and Neosho Bass based on admixture and phylogenomics (Analysis 3) and admixture mapping analysis (Analysis 5). Specifically, we used the joint site frequency spectrum (JSFS) of admixed populations within the Neosho Bass range (ELK, BAYOU, ILLI, and UPPARK) and the inferred interspecific parent population within the Smallmouth Bass range (SKIA, MISS, and WHITE) to determine the relative timing of admixture events by testing multiple demographic scenarios in a model-testing maximum likelihood framework. We inferred whether admixed populations were the results of relatively recent admixture, old admixture, or a combination of both and gleaned insights about the complexities of potential natural and anthropogenic sources of gene flow.
-
-#### Run the code: `07_demographic_analysis/smb_genomics_demographic_analysis.Rmd`
