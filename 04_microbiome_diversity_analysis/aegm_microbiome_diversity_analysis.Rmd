@@ -7,7 +7,6 @@ output: html_document
 
 # Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
-
 ## Specific Aim: Assessing differential OTU abundance and diverity within (alpha) and between (beta) African elephant sample groups (phylogeny, diet, and habitat) 
 In this analysis, we assess differential abundance in relatively highly represented OTUs (i.e., within the most highly represented phyla) across African elephant sample groups of interest (phylogeny, diet, and habitat) to determine whether any major taxonomic groups explain variation between groups. We then assess both within-group (alpha) microbial diversity and between-group (beta) microbial diversity to determine whether there are overarching differences in microbiome structure and composition among elephant groups.  
 
@@ -1120,5 +1119,12 @@ dev.off()
 ```
 
 These plots are included as the basis for Figure 2 (h-j) in the final ms.
+
+### ----------------------- END OF PHASE 2: DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
+
+## PHASE 3: OTU DIVERSITY ANALYSIS
+In this phase of the analysis, we assess differences in microbiome composition, diversity, and structure among African elephant groups using a multivariate framework. We consider all microbial OTU abundances as response variables in PCOA. 
+
+### STEP 1: 
 
 ### ----------------------- END OF ANALYSIS 4: MICROBIOME DIVERSITY AND DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
