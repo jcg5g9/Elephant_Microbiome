@@ -31,12 +31,13 @@ library(vegan)
 library(ape)
 ```
 
-## PHASE 1: DATA READ-IN, IDENTIFICATION OF MAJOR OTU GROUPS, AND FILTERING
-In this phase of the analysis, we read in the full, clean Order-level dataset from Analysis 3 ("order_data.Rda") and identify the most relatively abundant taxonomic groups. We then filter the full dataset into separate datasets by taxonomic group for downstream analyses. In Phase 2, we then assess differential abundance only in microbial orders that have an average relative abundance of 10% across samples.
+## PHASE 1: DIFFERENTIAL OTU ABUNDANCE ANALYSIS
+In this phase of the analysis, we read in the full, clean Order-level dataset from Analysis 3 ("order_data.Rda") and identify the most relatively abundant taxonomic groups. We then filter the full dataset into separate datasets by taxonomic group for downstream analyses. We then assess differential abundance only in microbial orders that have an average relative abundance of 10% across samples.
 
-### STEP 1: Identify phyla with the highest relative abundance for the full microbial OTU dataset and filter the full dataset to include only top phyla.
+### STEP 1: Identify taxa with the greatest relative abundance at the phylum level
+In this step, we determine relative abundance (summing abundance of all individuals) across the full sample set at the phylum level. We then use these groups to assess differences in abundance in lower taxonomic groups across different elephant groups of interest in Step 2.
 
-#### 1a: Determine relative abundance at the phylum level; run the Rmd chunk below.
+#### 1a: Identify phyla with the highest relative abundance across samples; run the Rmd chunk below.
 
 ##### Obtain most abundant phyla in the dataset:
 ```{r}
@@ -55,43 +56,36 @@ phylum_abundance <- order_data %>%
   summarize(abundance = sum(abundance),
             relative_abundance = abundance/total_abundance) %>%
   arrange(desc(relative_abundance))
+
+# Get dataset with only most abundant phyla
+phyla <- order_data %>%
+  filter(phylum == "Firmicutes" | 
+           phylum == "Proteobacteria" |
+           phylum == "Bacteroidetes")
+
+# Save phylum dataset for downstream analyses
+save(phyla, file = "data/phyla.Rda")
 ```
 
 <b> Data filtering results </b>: <br>
-Phyla with greater than 10% relative abundance: Firmicutes, Proteobacteria, Bacteroidetes
+Phyla with greater than 10% relative abundance: Firmicutes, Bacteroidetes, Proteobacteria
 
-#### 1b: Filter the full dataset to include only high-proportiopn phyla; run the Rmd chunk below.
+### STEP 2: Assess differential OTU abundance at lower taxonomic levels within top phyla.
+In this step, we zoom in on the three most abundant phyla ascertained in STEP 1 above (Firmucutes, Proteobacteria, and Bacteroidetes), and we assess differential abundance in microbial OTUs at the order and genus levels for African elephant groups of interest (i.e., phylogeny, diet, and habitat). We examine all orders and genera within each of the three top phyla successively; we assess all groups in Firmicutes in Step 2a, all groups in Proteobacteria in Step 2b, and all groups in Bacteroidetes in Step 2c. 
 
-### Filter full data into separate datasets for each major phylum:
-```{r}
-# Get dataset with only phylum firmicutes
-firmicutes <- order_data %>%
-  filter(phylum == "Firmicutes")
+#### 2a: Assess differential OTU abundance within Phylum Firmicutes.
 
-# Get dataset with only phylum proteobacteria
-proteobacteria <- order_data %>%
-  filter(phylum == "Proteobacteria")
-
-# Get dataset with only phylum bacteroidetes
-bacteroidetes <- order_data %>%
-  filter(phylum == "Bacteroidetes")
-
-# Save phylum datasets for downstream analyses
-save(firmicutes, file = "data/firmicutes.Rda")
-save(proteobacteria, file = "data/proteobacteria.Rda")
-save(bacteroidetes, file = "data/bacteroidetes.Rda")
-```
-
-### STEP 2: Determine relative abundance at the order level within phyla and filter the datasets to include only high-proportion orders.
-
-#### 2a. Determine relative abundance and filter orders in phylum Firmicutes.
-
-##### 2a.1. Determine relative abundance of orders within phylum Firmicutes; run the Rmd chunk below.
+##### 2a.1. Identify most abundant orders within Phylum Firmicutes.
+In this step, we identify orders within Firmicutes that have a relative abundance greater than 10%, and we assess differential abundance (Step 2a.2) between African elephant species (2a.2.1) and groups (2a.2.2) for these orders.
 
 ##### Get top orders in phylum Firmicutes:
 ```{r}
-# Load Firmicutes data
-load("data/firmicutes.Rda")
+# Load phylum dataset
+load("data/phyla.Rda")
+
+# Get dataset with only phylum firmicutes
+firmicutes <- phyla %>%
+  filter(phylum == "Firmicutes")
 
 # Get total abundance across samples
 total_abundance <- sum(firmicutes$abundance)
@@ -102,74 +96,207 @@ order_abundance <- firmicutes %>%
   summarize(abundance = sum(abundance),
             relative_abundance = abundance/total_abundance) %>%
   arrange(desc(relative_abundance))
+
+# Get dataset with only top orders
+firmicutes_orders <- firmicutes %>%
+  filter(order == "Clostridiales" | 
+           order == "Bacillales")
+
+# Save order dataset for downstream analyses
+save(firmicutes_orders, file = "data/firmicutes_orders.Rda")
 ```
 
 <b> Data filtering results </b>: <br>
 Orders with greater than 10% relative abundance: Clostridiales, Bacillales
 
-##### 2a.2. Filter the full dataset to include only high-proportiopn orders; run the Rmd chunk below.
+##### 2a.2. Assess differential OTU abundance at the most abundant orders in Phylum Firmicutes; run the Rmd chunk below.
 
-### Filter data to only include major orders:
+###### 2a.2.1. Assess differential OTU abundance between African elephant species (<i>L. africana</i>, <i>L. cyclotis</i>), controlling for diet and habitat.
+
+##### Run general linear mixed models.
 ```{r}
 # Load Firmicutes data
-load("data/firmicutes.Rda")
+load("data/firmicutes_orders.Rda")
 
-# Get dataset with only top orders
-top_firmicutes <- firmicutes %>%
-  filter(order == "Clostridiales" | 
-           order == "Bacillales")
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+firmicutes_orders <- firmicutes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
 
-# Save order dataset for downstream analyses
-save(top_firmicutes, file = "data/top_firmicutes.Rda")
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+firmicutes_orders <- firmicutes_orders %>%
+  filter(habitat == "Forest" & diet == "Nonraider")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(firmicutes_orders[,7:ncol(firmicutes_orders)])),
+                    p_value = numeric(length = ncol(firmicutes_orders[,7:ncol(firmicutes_orders)])),
+                    f_value = numeric(length = ncol(firmicutes_orders[,7:ncol(firmicutes_orders)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(firmicutes_orders)) {
+    
+  ff <- as.formula(paste0(colnames(firmicutes_orders)[ii], "~ phylogeny + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  firmicutes_orders) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
 ```
 
-#### 2b. Determine relative abundance and filter orders in phylum Proteobacteria.
+<b> Model results </b>: <br>
+Bacillales: p_corrected < 0.001, F = 30.623
+Clostridiales: p_corrected = 0.546, F = 0.3653
 
-##### 2b.1. Determine relative abundance of orders within phylum Proteobacteria; run the Rmd chunk below.
+###### 2a.2.2. Assess differential OTU abundance between African elephant groups (diet and habitat), controlling for species.
 
-##### Get top orders in phylum Proteobacteria:
+##### Run general linear mixed models.
 ```{r}
-# Load Proteobacteria data
-load("data/proteobacteria.Rda")
+# Load Firmicutes data
+load("data/firmicutes_orders.Rda")
+
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+firmicutes_orders <- firmicutes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+firmicutes_orders <- firmicutes_orders %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(firmicutes_orders[,7:ncol(firmicutes_orders)])),
+                    p_value = numeric(length = ncol(firmicutes_orders[,7:ncol(firmicutes_orders)])),
+                    f_value = numeric(length = ncol(firmicutes_orders[,7:ncol(firmicutes_orders)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(firmicutes_orders)) {
+    
+  ff <- as.formula(paste0(colnames(firmicutes_orders)[ii], "~ group + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  firmicutes_orders) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+```
+
+<b> Model results </b>: <br>
+Bacillales: p_corrected = 0.109, F = 2.367
+Clostridiales: p_corrected = 0.712, F = 2.275
+
+##### 2a.3. Identify most abundant genera within significant orders.
+In this step, we identify genera within Order Bacilalles, which was the only order with significant differences between species, that have a relative abundance greater than 10%. We then assess differential abundance (Step 2b.4) between African elephant species (2b.4.1; there were no significant differences between groups in Order Bacillales).
+
+##### Get top genera in Order Bacillales:
+```{r}
+# Load firmicutes orders dataset
+load("data/firmicutes_orders.Rda")
+
+# Get dataset with only Order Bacillales
+bacillales <- firmicutes_orders %>%
+  filter(order == "Bacillales") %>%
+  drop_na(genus)
 
 # Get total abundance across samples
-total_abundance <- sum(proteobacteria$abundance)
+total_abundance <- sum(bacillales$abundance)
 
 # Calculate abundance and relative abundance across samples for each order represented in the dataset
-order_abundance <- proteobacteria %>%
-  group_by(order) %>%
+genera_abundance <- bacillales %>%
+  group_by(genus) %>%
   summarize(abundance = sum(abundance),
             relative_abundance = abundance/total_abundance) %>%
   arrange(desc(relative_abundance))
+
+# Get dataset with only top orders
+bacillales_genera <- bacillales %>%
+  filter(genus == "Solibacillus" | 
+           genus == "Bacillus")
+
+# Save order dataset for downstream analyses
+save(bacillales_genera, file = "data/bacillales_genera.Rda")
 ```
 
 <b> Data filtering results </b>: <br>
-Orders with greater than 10% relative abundance: Pseudomonadales, Enterobacteriales
+Genera with greater than 10% relative abundance: Solibacillus, Bacillus
 
-##### 2b.2. Filter the full dataset to include only high-proportiopn orders; run the Rmd chunk below.
+##### 2a.4. Assess differential OTU abundance between African elephant species (<i>L. africana</i>, <i>L. cyclotis</i>), controlling for diet and habitat; run the Rmd chunk below.
 
-### Filter data to only include major orders:
+##### Run general linear mixed models.
 ```{r}
-# Load Proteobacteria data
-load("data/proteobacteria.Rda")
+# Load genus data
+load("data/bacillales_genera.Rda")
 
-# Get dataset with top Proteobacteria orders 
-top_proteobacteria <- proteobacteria %>%
-  filter(order == "Pseudomonadales" |
-           order == "Enterobacteriales")
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+bacillales_genera <- bacillales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(genus, abundance) 
 
-# Save order dataset for downstream analyses
-save(top_proteobacteria, file = "data/top_proteobacteria.Rda")
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+bacillales_genera <- bacillales_genera %>%
+  filter(habitat == "Forest" & diet == "Nonraider")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(genus = factor(colnames(bacillales_genera[,7:ncol(bacillales_genera)])),
+                    p_value = numeric(length = ncol(bacillales_genera[,7:ncol(bacillales_genera)])),
+                    f_value = numeric(length = ncol(bacillales_genera[,7:ncol(bacillales_genera)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(bacillales_genera)) {
+    
+  ff <- as.formula(paste0(colnames(bacillales_genera)[ii], "~ phylogeny + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  bacillales_genera) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
 ```
 
-#### 2c. Determine relative abundance and filter orders in phylum Bacteroidetes
+<b> Model results </b>: <br>
+Bacillus: p_corrected = 0.654, F = 0.201
+Solibacillus: p_corrected < 0.001, F = 42.547
 
-##### 2c.1. Determine relative abundance of orders within phylum Bacteroidetes; run the Rmd chunk below.
+#### 2b: Assess differential OTU abundance within Phylum Bacteroidetes.
+
+##### 2b.1. Identify most abundant orders within Phylum Bacteroidetes
+In this step, we identify orders within Bacteroidetes that have a relative abundance greater than 10%, and we assess differential abundance (Step 2b.2) between African elephant species (2b.2.1) and groups (2b.2.2) for these orders.
 
 ##### Get top orders in phylum Bacteroidetes:
 ```{r}
-# Load Bacteroidetes data
-load("data/bacteroidetes.Rda")
+# Load phylum dataset
+load("data/phyla.Rda")
+
+# Get dataset with only phylum bacteroidetes
+bacteroidetes <- phyla %>%
+  filter(phylum == "Bacteroidetes")
 
 # Get total abundance across samples
 total_abundance <- sum(bacteroidetes$abundance)
@@ -180,601 +307,818 @@ order_abundance <- bacteroidetes %>%
   summarize(abundance = sum(abundance),
             relative_abundance = abundance/total_abundance) %>%
   arrange(desc(relative_abundance))
+
+# Get dataset with only top orders
+bacteroidetes_orders <- bacteroidetes %>%
+  filter(order == "Bacteroidales" | 
+           order == "Flavobacteriales")
+
+# Save order dataset for downstream analyses
+save(bacteroidetes_orders, file = "data/bacteroidetes_orders.Rda")
 ```
 
 <b> Data filtering results </b>: <br>
 Orders with greater than 10% relative abundance: Bacteroidales, Flavobacteriales
 
-##### 2c.2. Filter the full dataset to include only high-proportiopn orders; run the Rmd chunk below.
+##### 2b.2. Assess differential OTU abundance at the most abundant orders in Phylum Bacteroidetes.
 
-### Filter data to only include major orders:
+###### 2b.2.1. Assess differential OTU abundance between African elephant species (<i>L. africana</i>, <i>L. cyclotis</i>), controlling for diet and habitat; run the Rmd chunk below.
+
+##### Run general linear mixed models.
 ```{r}
 # Load Bacteroidetes data
-load("data/bacteroidetes.Rda")
+load("data/bacteroidetes_orders.Rda")
 
-# Get dataset with top Bacteroidetes orders
-top_bacteroidetes <- order_data %>%
-  filter(order == "Bacteroidales" | 
-           order == "Flavobacteriales")
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  filter(habitat == "Forest" & diet == "Nonraider")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])),
+                    p_value = numeric(length = ncol(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])),
+                    f_value = numeric(length = ncol(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(bacteroidetes_orders)) {
+    
+  ff <- as.formula(paste0(colnames(bacteroidetes_orders)[ii], "~ phylogeny + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  bacteroidetes_orders) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+```
+
+<b> Model results </b>: <br>
+Bacteroidales: p_corrected 0.469, F = 0.525
+Flavobacteriales: p_corrected = 0.139, F = 3.295
+
+###### 2b.2.2. Assess differential OTU abundance between African elephant groups (diet and habitat), controlling for species.
+
+##### Run general linear mixed models.
+```{r}
+# Load Bacteroidetes data
+load("data/bacteroidetes_orders.Rda")
+
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])),
+                    p_value = numeric(length = ncol(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])),
+                    f_value = numeric(length = ncol(bacteroidetes_orders[,7:ncol(bacteroidetes_orders)])))
+
+# We attempted to run general linear mixed models in a for loop as above (for Phylum Firmicutes), but we found that the glmer.nb could not be computed for order Flavobacteriales, likely due to complete separation of the response variable. Thus, we needed to run each linear model separately ("mod_1" for Bacteroidales and "mod_2" for Flavobacteriales), and for mod_2, we implemented recommended model parameters (Bolker) to handle this issue. Resulting model output statistics were still loaded into the "stats" table and corrected for false discovery rate.
+
+# Run general linear mixed models and extract statistics for Bacteroidales column
+mod_1 <- glmer.nb(Bacteroidales ~ group + (1|sex), bacteroidetes_orders)
+mod_1_p <- summary(mod_1)$coefficients[2,4] # extract p value
+mod_1_f <- anova(mod_1)$`F value` # extract F value
+
+# Run general linear mixed models and extract statistics for Flavobacteriales column
+mod_2 <- glmer.nb(Flavobacteriales ~ group + (1|sex), bacteroidetes_orders,
+                  control=glmerControl(optimizer="bobyqa", 
+                                       tolPwrss=1e-3, 
+                                       optCtrl = list(maxfun = 100000)))
+mod_2_p <- summary(mod_2)$coefficients[2,4] # extract p value
+mod_2_f <- anova(mod_2)$`F value` # extract F value
+
+# Fill stats table
+stats[1,2] <- mod_1_p
+stats[1,3] <- mod_1_f
+stats[2,2] <- mod_2_p
+stats[2,3] <- mod_2_f
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Run post-hoc Tukey-test on Flavobacteriales given that it was significant for group
+posthoc <- glht(mod_2, mcp(group = "Tukey"))
+
+# Get p-values for pairwise comparisons
+summary(posthoc)
+```
+
+<b> Model results </b>: <br>
+Bacteroidales: p_corrected = 0.167, F = 1.591991
+Flavobacteriales: p_corrected = 0.002, F = 8.268724
+
+<b> Post-hoc model results for Flavobacteriales </b>: <br>
+s_cr - f_cr: p_value = 0.005 (habitat difference; significant)
+f_ncr - f_cr: p_value = 0.49166 
+s_ncr - f_cr: p_value = 0.56731 
+f_ncr - s_cr: p_value < 0.001 (diet:habitat interaction; significant)
+s_ncr - s_cr: p_value = 0.014 (diet difference; significant)
+s_ncr - f_ncr: p_value = 0.12808
+
+##### 2c.3. Identify most abundant genera within significant orders.
+In this step, we identify genera within Order Flavobacteriales, which was the only order with significant differences among groups, that have a relative abundance greater than 10%. We then assess differential abundance (Step 2c.4) among African elephant groups (2b.4.1; there were no significant differences between species in Order Flavobacteriales).
+
+##### Get top genera in Order Flavobacteriales:
+```{r}
+# Load bacteroidetes orders dataset
+load("data/bacteroidetes_orders.Rda")
+
+# Get dataset with only order Flavobacteriales
+flavobacteriales <- bacteroidetes_orders %>%
+  filter(order == "Flavobacteriales") %>%
+  drop_na(genus)
+
+# Get total abundance across samples
+total_abundance <- sum(flavobacteriales$abundance)
+
+# Calculate abundance and relative abundance across samples for each order represented in the dataset
+genera_abundance <- flavobacteriales %>%
+  group_by(genus) %>%
+  summarize(abundance = sum(abundance),
+            relative_abundance = abundance/total_abundance) %>%
+  arrange(desc(relative_abundance))
+
+# Get dataset with only top orders
+flavobacteriales_genera <- flavobacteriales %>%
+  filter(genus == "Wautersiella")
 
 # Save order dataset for downstream analyses
-save(top_bacteroidetes, file = "data/top_bacteroidetes.Rda")
+save(flavobacteriales_genera, file = "data/flavobacteriales_genera.Rda")
 ```
 
-### ----------------------- END OF PHASE 1: DATA READ-IN, IDENTIFICATION OF MAJOR OTU GROUPS, AND FILTERING ----------------------- ###
+<b> Data filtering results </b>: <br>
+Genera with greater than 10% relative abundance: Wautersiella 
 
-## PHASE 2: DIFFERENTIAL OTU ABUNDANCE ANALYSIS
-In this phase of our analysis, we assess differences in microbial OTU abundance between African elephant groups of interest (i.e., phylogeny, diet, and habitat) at the Order level. Where possible and appropriate, we also assess differential abundance at the species level. We use a general linear mixed model (using individual sex, i.e., male or female, as a random effect) framework, assuming a negative-binomial (i.e., zero-inflated) distribution. We use post-hoc Tukey tests and p-value correction (false discovery rate) to conduct pairwise comparisons of each elephant group within taxonomic levels.
+##### 2b.4. Assess differential OTU abundance between African elephant group, controlling for species; run the Rmd chunk below.
 
-### STEP 1: Assess differential abundance in phylum Firmutes
-In this step, we assess differential abundance among orders and genera in phylum Firmicutes.
-
-#### 1a: Modify top firmicutes dataset for running general linear mixed models; run the Rmd chunk below.
-
-##### Modify top firmicutes dataset for downstream general linear mixed models.
+##### Run general linear mixed models.
 ```{r}
-# Load top Firmicutes data
-load("data/top_firmicutes.Rda")
+# Load genus data
+load("data/flavobacteriales_genera.Rda")
 
-# Get total abundance per individual per order, square-root transform abundance, and spread the dataset to prepare for general linear mixed models.
-firmicutes_orders <- top_firmicutes %>%
-  dplyr::select(ind_id, group, sex, order, abundance) %>%
-  group_by(ind_id, group, sex, order) %>%
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+flavobacteriales_genera <- flavobacteriales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
   summarize(abundance = sum(abundance)) %>%
-  mutate(sqrt_abundance = sqrt(abundance)) %>%
-  dplyr::select(-abundance) %>%
-  spread(order, sqrt_abundance) 
+  spread(genus, abundance) 
 
-# Save order dataset for downstream analysis
-save(firmicutes_orders, file = "data/firmicutes_orders.Rda")
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only L. africana 
+flavobacteriales_genera <- flavobacteriales_genera %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(genus = factor(colnames(flavobacteriales_genera[,7:ncol(flavobacteriales_genera)])),
+                    p_value = numeric(length = ncol(flavobacteriales_genera[,7:ncol(flavobacteriales_genera)])),
+                    f_value = numeric(length = ncol(flavobacteriales_genera[,7:ncol(flavobacteriales_genera)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(flavobacteriales_genera)) {
+    
+  ff <- as.formula(paste0(colnames(flavobacteriales_genera)[ii], "~ group + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  flavobacteriales_genera) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Run post-hoc Tukey-test on Wautersiella given that it was significant for group
+posthoc <- glht(glmer, mcp(group = "Tukey"))
+
+# Get p-values for pairwise comparisons
+summary(posthoc)
 ```
 
-#### 1b: Run general linear mixed models for each order to test for differential abundance among African elephant groups at the order level; run the Rmd chunk below:
-In this step, we run general linear mixed models for the relationship of elephant group and order abundance (square-root transformed), with sex as a random effect and assuming a negative-binomial distribution, in a for loop construct, calculating p-values for each order column in the data.
+<b> Model results </b>: <br>
+Wautersiella: p_corrected = < 0.001, F = 6.976
 
-##### Assess differential abundance across elephant groups within orders in phylum Firmicutes: 
+<b> Post-hoc model results for Flavobacteriales </b>: <br>
+s_cr - f_cr: p_value = 0.003 (habitat difference; significant)
+f_ncr - f_cr: p_value = 0.983   
+s_ncr - f_cr: p_value = 0.424   
+f_ncr - s_cr: p_value = 0.002 (diet:habitat interaction; significant)
+s_ncr - s_cr: p_value = 0.016 (diet difference; significant) 
+s_ncr - f_ncr: p_value = 0.336
+
+#### 2c: Assess differential OTU abundance within Phylum Proteobacteria.
+
+##### 2c.1. Identify most abundant orders within Phylum Proteobacteria.
+In this step, we identify orders within Proteobacteria that have a relative abundance greater than 10%, and we assess differential abundance (Step 2c.2) between African elephant species (2c.2.1) and groups (2c.2.2) for these orders.
+
+##### Get top orders in phylum Proteobacteria:
 ```{r}
-# Load firmicutes order data
-load("data/firmicutes_orders.Rda")
+# Load phylum dataset
+load("data/phyla.Rda")
 
-# Generate table to hold p-values for each analysis
-p <- data.frame(order = factor(c("Bacillales", "Clostridiales")), p_value = numeric(length = 2))
+# Get dataset with only phylum proteobacteria
+proteobacteria <- phyla %>%
+  filter(phylum == "Proteobacteria")
 
-# Run general linear mixed model in for loop
-for (ii in 4:ncol(firmicutes_orders)) {
-      
-  #col = firmicutes_orders[,ii] # iterate through order columns (i.e., 4:ncol)
-  ff <- as.formula(paste0(colnames(firmicutes_orders)[ii]," ~ group + (1|sex)")) # specify model
-  glmer <- glmer.nb(ff, firmicutes_orders) # run linear model           
-  p_value <- summary(glmer)$coefficients[2,4] #extract p value
-  p[ii-3,2] <- p_value # put p value in table
-      
-  }
+# Get total abundance across samples
+total_abundance <- sum(proteobacteria$abundance)
 
-# Adjust p-values for false discovery rate
-p_fdr <- cbind(p, 
-               data.frame(fdr_p = p.adjust(p$p_value, method = "fdr")), 
-               data.frame(result = with(p_fdr, ifelse(fdr_p<0.05, "significant", "not-significant"))))
-```
+# Calculate abundance and relative abundance across samples for each order represented in the dataset
+order_abundance <- proteobacteria %>%
+  group_by(order) %>%
+  summarize(abundance = sum(abundance),
+            relative_abundance = abundance/total_abundance) %>%
+  arrange(desc(relative_abundance))
 
-### STEP 2: Assess differential abundance in phylum Proteobacteria
-In this step, we assess differential abundance among orders and genera in phylum Proteobacteria
+# Get dataset with only top orders
+proteobacteria_orders <- proteobacteria %>%
+  filter(order == "Pseudomonadales" | 
+           order == "Enterobacteriales")
 
-#### 2a: Modify top proteobacteria dataset for running general linear mixed models; run the Rmd chunk below.
-
-##### Modify top proteobacteria dataset for downstream general linear mixed models.
-```{r}
-# Load top Proteobacteria data
-load("data/top_proteobacteria.Rda")
-
-# Get total abundance per individual per order, square-root transform abundance, and spread the dataset to prepare for general linear mixed models.
-proteobacteria_orders <- top_proteobacteria %>%
-  dplyr::select(ind_id, group, sex, order, abundance) %>%
-  group_by(ind_id, group, sex, order) %>%
-  summarize(abundance = sum(abundance)) %>%
-  mutate(sqrt_abundance = sqrt(abundance)) %>%
-  dplyr::select(-abundance) %>%
-  spread(order, sqrt_abundance) 
-
-# Save order dataset for downstream analysis
+# Save order dataset for downstream analyses
 save(proteobacteria_orders, file = "data/proteobacteria_orders.Rda")
 ```
 
-#### 2b: Run general linear mixed models for each order to test for differential abundance among African elephant groups at the order level; run the Rmd chunk below:
-In this step, we run general linear mixed models for the relationship of elephant group and order abundance (square-root transformed), with sex as a random effect and assuming a negative-binomial distribution, in a for loop construct, calculating p-values for each order column in the data.
+<b> Data filtering results </b>: <br>
+Orders with greater than 10% relative abundance: Pseudomonadales, Enterobacteriales
 
-##### Assess differential abundance across elephant groups within orders in phylum Proteobacteria: 
+##### 2c.2. Assess differential OTU abundance at the most abundant orders in Phylum Proteobacteria.
+
+###### 2c.2.1. Assess differential OTU abundance between African elephant species (<i>L. africana</i>, <i>L. cyclotis</i>), controlling for diet and habitat; run the Rmd chunk below.
+
+##### Run general linear mixed models.
 ```{r}
-# Load proteobacteria order data
+# Load Proteobacteria data
 load("data/proteobacteria_orders.Rda")
 
-# Generate table to hold p-values for each analysis
-p <- data.frame(order = factor(c("Enterobacteriales", "Pseudomonadales")), p_value = numeric(length = 2))
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+proteobacteria_orders <- proteobacteria_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
 
-# Run general linear mixed model in for loop
-for (ii in 4:ncol(proteobacteria_orders)) {
-      
-  #col = firmicutes_orders[,ii] # iterate through order columns (i.e., 4:ncol)
-  ff <- as.formula(paste0(colnames(proteobacteria_orders)[ii]," ~ group + (1|sex)")) # specify model
-  glmer <- glmer.nb(ff, proteobacteria_orders) # run linear model           
-  p_value <- summary(glmer)$coefficients[2,4] #extract p value
-  p[ii-3,2] <- p_value # put p value in table
-      
-  }
+# Set scipen to avoid scientific notation
+options(scipen = 999)
 
-# Adjust p-values for false discovery rate
-p_fdr <- cbind(p, 
-               data.frame(fdr_p = p.adjust(p$p_value, method = "fdr")), 
-               data.frame(result = with(p_fdr, ifelse(fdr_p<0.05, "significant", "not-significant"))))
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+proteobacteria_orders <- proteobacteria_orders %>%
+  filter(habitat == "Forest" & diet == "Nonraider")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(proteobacteria_orders[,7:ncol(proteobacteria_orders)])),
+                    p_value = numeric(length = ncol(proteobacteria_orders[,7:ncol(proteobacteria_orders)])),
+                    f_value = numeric(length = ncol(proteobacteria_orders[,7:ncol(proteobacteria_orders)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(proteobacteria_orders)) {
+    
+  ff <- as.formula(paste0(colnames(proteobacteria_orders)[ii], "~ phylogeny + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  proteobacteria_orders) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
 ```
 
-### STEP 3: Assess differential abundance in phylum Proteobacteria
-In this step, we assess differential abundance among orders and genera in phylum Bacteroidetes.
+<b> Model results </b>: <br>
+Enterobacteriales: p_corrected 0.253, F = 1.307
+Pseudomonadales: p_corrected = 0.086, F = 4.093
 
-#### 3a: Modify top bacteroidetes dataset for running general linear mixed models; run the Rmd chunk below.
+###### 2c.2.2. Assess differential OTU abundance between African elephant groups (diet and habitat), controlling for species.
 
-##### Modify top bacteroidetes dataset for downstream general linear mixed models.
+##### Run general linear mixed models.
 ```{r}
-# Load top Bacteroidetes data
-load("data/top_bacteroidetes.Rda")
+# Load Proteobacteria data
+load("data/proteobacteria_orders.Rda")
 
-# Get total abundance per individual per order, square-root transform abundance, and spread the dataset to prepare for general linear mixed models.
-bacteroidetes_orders <- top_bacteroidetes %>%
-  dplyr::select(ind_id, group, sex, order, abundance) %>%
-  group_by(ind_id, group, sex, order) %>%
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+proteobacteria_orders <- proteobacteria_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(order, abundance) 
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only L. africana
+proteobacteria_orders <- proteobacteria_orders %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(order = factor(colnames(proteobacteria_orders[,7:ncol(proteobacteria_orders)])),
+                    p_value = numeric(length = ncol(proteobacteria_orders[,7:ncol(proteobacteria_orders)])),
+                    f_value = numeric(length = ncol(proteobacteria_orders[,7:ncol(proteobacteria_orders)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(proteobacteria_orders)) {
+    
+  ff <- as.formula(paste0(colnames(proteobacteria_orders)[ii], "~ group + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  proteobacteria_orders) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Get model just for significant order (Pseudomonadales)
+glmer <- glmer.nb(Pseudomonadales ~ group + (1|sex),  proteobacteria_orders)
+
+# Run post-hoc Tukey-test on Flavobacteriales given that it was significant for group
+posthoc <- glht(glmer, mcp(group = "Tukey"))
+
+# Get p-values for pairwise comparisons
+summary(posthoc)
+```
+
+<b> Model results </b>: <br>
+Enterobacteriales: p_corrected = 0.057, F = 1.876
+Pseudomonadales: p_corrected = 0.001, F = 4.77
+
+<b> Post-hoc model results for Flavobacteriales </b>: <br>
+s_cr - f_cr: p_value = 0.003 (habitat difference; significant)
+f_ncr - f_cr: p_value = 0.971
+s_ncr - f_cr: p_value = 0.999
+f_ncr - s_cr: p_value = 0.002 (diet:habitat interaction; significant)
+s_ncr - s_cr: p_value = 0.002 (diet difference; significant)
+s_ncr - f_ncr: p_value = 0.988
+
+##### 2c.3. Identify most abundant genera within significant orders.
+In this step, we identify genera within Order Pseudomonadales, which was the only order with significant differences among groups, that have a relative abundance greater than 10%. We then assess differential abundance (Step 2c.4) among African elephant groups (2c.4.1; there were no significant differences between species in Order Pseudomonadales).
+
+##### Get top genera in Order Pseudomonadales:
+```{r}
+# Load proteobacteria orders dataset
+load("data/proteobacteria_orders.Rda")
+
+# Get dataset with only order Pseudomonadales
+pseudomonadales <- proteobacteria_orders %>%
+  filter(order == "Pseudomonadales") %>%
+  drop_na(genus)
+
+# Get total abundance across samples
+total_abundance <- sum(pseudomonadales$abundance)
+
+# Calculate abundance and relative abundance across samples for each order represented in the dataset
+genera_abundance <- pseudomonadales %>%
+  group_by(genus) %>%
+  summarize(abundance = sum(abundance),
+            relative_abundance = abundance/total_abundance) %>%
+  arrange(desc(relative_abundance))
+
+# Get dataset with only top orders
+pseudomonadales_genera <- pseudomonadales %>%
+  filter(genus == "Acinetobacter")
+
+# Save order dataset for downstream analyses
+save(pseudomonadales_genera, file = "data/pseudomonadales_genera.Rda")
+```
+
+<b> Data filtering results </b>: <br>
+Genera with greater than 10% relative abundance: Acinetobacter 
+
+##### 2c.4. Assess differential OTU abundance between African elephant group, controlling for species; run the Rmd chunk below.
+
+##### Run general linear mixed models.
+```{r}
+# Load genus data
+load("data/pseudomonadales_genera.Rda")
+
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+pseudomonadales_genera <- pseudomonadales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
+  summarize(abundance = sum(abundance)) %>%
+  spread(genus, abundance) 
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only L. africana 
+pseudomonadales_genera <- pseudomonadales_genera %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(genus = factor(colnames(pseudomonadales_genera[,7:ncol(pseudomonadales_genera)])),
+                    p_value = numeric(length = ncol(pseudomonadales_genera[,7:ncol(pseudomonadales_genera)])),
+                    f_value = numeric(length = ncol(pseudomonadales_genera[,7:ncol(pseudomonadales_genera)])))
+
+# Run general linear mixed models on order columns
+for (ii in 7:ncol(pseudomonadales_genera)) {
+    
+  ff <- as.formula(paste0(colnames(pseudomonadales_genera)[ii], "~ group + (1|sex)")) # define response 
+  glmer <- glmer.nb(ff,  pseudomonadales_genera) # define linear model 
+  p_value <- summary(glmer)$coefficients[2,4] # extract p value
+  f_value <- anova(glmer)$`F value` # extract F value
+  stats[ii-6,2] <- p_value # Put p value in table
+  stats[ii-6,3] <- f_value # Put F value in table
+  
+}
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Run post-hoc Tukey-test on Wautersiella given that it was significant for group
+posthoc <- glht(glmer, mcp(group = "Tukey"))
+
+# Get p-values for pairwise comparisons
+summary(posthoc)
+```
+
+<b> Model results </b>: <br>
+Acinetobacter: p_corrected = < 0.001, F = 4.760
+
+<b> Post-hoc model results for Flavobacteriales </b>: <br>
+s_cr - f_cr: p_value = 0.003 (habitat difference; significant)
+f_ncr - f_cr: p_value = 0.972
+s_ncr - f_cr: p_value = 0.999
+f_ncr - s_cr: p_value = 0.002 (diet:habitat interaction; significant)
+s_ncr - s_cr: p_value = 0.003 (diet difference; significant) 
+s_ncr - f_ncr: p_value = 0.989   
+
+### STEP 3: Plot differential abundance for all groups in each Phylum.
+In this step, we generate box plots to visualize differential OTU abundance at the Order and Genus level within the top three phyla: Firmicutes, Bacteroidetes, and Proteobacteria. To better visualize abundance values, we square root transform all data points.
+
+#### 3a: Plot differential abundance for orders and genera in Bacteroidetes; run the Rmd chunk below.
+
+##### Plot differential abundance within Bacteroidetes:
+```{r}
+# Load Bacteroidetes orders data
+load("data/bacteroidetes_orders.Rda")
+
+# Get total abundance per individual per order, square root transform data for ease of visualization, and spread the dataset.
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
   summarize(abundance = sum(abundance)) %>%
   mutate(sqrt_abundance = sqrt(abundance)) %>%
   dplyr::select(-abundance) %>%
   spread(order, sqrt_abundance) 
 
-# Save order dataset for downstream analysis
-save(bacteroidetes_orders, file = "data/bacteroidetes_orders.Rda")
-```
+# Rename groups for easier plot visualization
+bacteroidetes_orders$group_code <- factor(with(bacteroidetes_orders, ifelse(group=="L.africana_Crop_raider_Savanna", "Laf:S+CR",
+                                                                            ifelse(group=="L.africana_Crop_raider_Forest", "Laf:F+CR",
+                                                                                   ifelse(group=="L.africana_Savanna", "Laf:S",
+                                                                                          ifelse(group=="L.africana_Forest", "Laf:F",
+                                                                                                 ifelse(group=="L.cyclotis_Forest", "Lcy:F","done")))))))
 
-#### 3b: Run general linear mixed models for each order to test for differential abundance among African elephant groups at the order level; run the Rmd chunk below:
-In this step, we run general linear mixed models for the relationship of elephant group and order abundance (square-root transformed), with sex as a random effect and assuming a negative-binomial distribution, in a for loop construct, calculating p-values for each order column in the data.
+# Reorder group codes to be more sensible when plotting
+bacteroidetes_orders <- bacteroidetes_orders %>%
+  mutate(group_code = fct_relevel(group_code, c("Lcy:F","Laf:F","Laf:F+CR","Laf:S","Laf:S+CR")))
 
-##### Assess differential abundance across elephant groups within orders in phylum Bacteroidetes: 
-```{r}
-# Load bacteroidetes order data
-load("data/bacteroidetes_orders.Rda")
+# Plot Order Flavobacteriales
+flavobacteriales <- ggplot(bacteroidetes_orders, aes(x = group_code, y = Flavobacteriales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Flavobacteriales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-# Generate table to hold p-values for each analysis
-p <- data.frame(order = factor(c("Bacteroidales", "Flavobacteriales")), p_value = numeric(length = 2))
+# Plot Order Bacteroidales
+bacteroidales <- ggplot(bacteroidetes_orders, aes(x = group_code, y = Bacteroidales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Bacteroidales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-# Run general linear mixed model in for loop
-for (ii in 4:ncol(bacteroidetes_orders)) {
-      
-  ff <- as.formula(paste0(colnames(bacteroidetes_orders)[ii]," ~ group + (1|sex)")) # specify model
-  glmer <- glmer.nb(ff, bacteroidetes_orders) # run linear model           
-  p_value <- summary(glmer)$coefficients[2,4] #extract p value
-  p[ii-3,2] <- p_value # put p value in table
-      
-  }
+# Load genus data
+load("data/flavobacteriales_genera.Rda")
 
-# Adjust p-values for false discovery rate
-p_fdr <- cbind(p, 
-               data.frame(fdr_p = p.adjust(p$p_value, method = "fdr")), 
-               data.frame(result = with(p_fdr, ifelse(fdr_p<0.05, "significant", "not-significant"))))
-```
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+flavobacteriales_genera <- flavobacteriales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
+  summarize(abundance = sum(abundance)) %>%
+  mutate(sqrt_abundance = sqrt(abundance)) %>%
+  dplyr::select(-abundance) %>%
+  spread(genus, sqrt_abundance) %>%
+  filter(phylogeny == "africana")
 
-## Statistical Signifiance of Orders By African Elephant Groups
-```{r}
-aem_bact_groups_rel0.1 <- aem_bact_groups[,-c(4,6,8)]
-aem_firm_groups_rel0.1 <- aem_firm_groups[,-c(6,7)]
-aem_proteo_groups_rel0.1 <- aem_proteo_groups[,-c(4:9,11:16,18:25)]
+# Rename groups for easier plot visualization
+flavobacteriales_genera$group_code <- factor(with(flavobacteriales_genera, ifelse(group=="L.africana_Crop_raider_Savanna", "Laf:S+CR",
+                                                                                  ifelse(group=="L.africana_Crop_raider_Forest", "Laf:F+CR",
+                                                                                         ifelse(group=="L.africana_Savanna", "Laf:S",
+                                                                                                ifelse(group=="L.africana_Forest", "Laf:F", "done"))))))
 
-#PHYLUM Bacteroidetes
-gbact <- glmer.nb(Bacteroidales ~ Group + (1|Sex), data = aem_bact_groups_rel0.1)
-gbact_p <- Anova(gbact)$`Pr(>Chisq)` #P = 0.1889
-gflav <- glmer.nb(Flavobacteriales ~ Group + (1|Sex), data = aem_bact_groups_rel0.1, control=glmerControl(optimizer="bobyqa", tolPwrss=1e-3, optCtrl = list(maxfun = 100000)))
-gflav_p <- Anova(gflav)$`Pr(>Chisq)` #P = 0.001998
+# Reorder group codes (group) to be more sensible when plotting
+flavobacteriales_genera <- flavobacteriales_genera %>%
+  mutate(group_code = fct_relevel(group_code, c("Laf:F","Laf:F+CR","Laf:S","Laf:S+CR")))
 
-p_vals_bact_groups <- as.data.frame(c(gbact_p, gflav_p))
-colnames(p_vals_bact_groups) <- c("pval")
+# Plot Genus Wautersiella by African elephant species
+wautersiella <- ggplot(flavobacteriales_genera, aes(x = group_code, y = Wautersiella)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Wautersiella", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-#Post-hoc Tukey-test
-post_flavo <- glht(gflav, mcp(Group = "Tukey"))
-summary(post_flavo)
+# Plot all Bacteroidetes 
+pdf("figures/bacteroidetes.pdf", width = 18, height = 6)
 
-#PHYLUM Firmicutes
-gbaci <- glmer.nb(Bacillales ~ Group + (1|Sex), data = aem_firm_groups_rel0.1)
-gbaci_p <- Anova(gbaci)$`Pr(>Chisq)`
-gclos <- glmer.nb(Clostridiales ~ Group + (1|Sex), data = aem_firm_groups_rel0.1)
-gclos_p <- Anova(gclos)$`Pr(>Chisq)`
-
-p_vals_firm_groups <- as.data.frame(c(gbaci_p, gclos_p))
-colnames(p_vals_firm_groups) <- c("pval")
-
-#Post-hoc Tukey-test
-post_bacillales <- glht(gbaci, mcp(Group="Tukey"))
-summary(post_bacillales)
-
-#PHYLUM Proteobacteria
-genter <- glmer.nb(Enterobacteriales ~ Group + (1|Sex), data = aem_proteo_groups_rel0.1)
-genter_p <- Anova(genter)$`Pr(>Chisq)`
-gpseudo <- glmer.nb(Pseudomonadales ~ Group + (1|Sex), data = aem_proteo_groups_rel0.1)
-gpseudo_p <- Anova(gpseudo)$`Pr(>Chisq)`
-
-p_vals_proteo_groups <- as.data.frame(c(genter_p, gpseudo_p))
-colnames(p_vals_proteo_groups) <- c("pval")
-
-#Post-hoc Tukey-Test
-post_pseudo <- glht(gpseudo, mcp(Group = "Tukey"))
-summary(post_pseudo)
-
-
-#For loops for ALL ORDERS
-
-#Bacteroides
-p_vals_bact_groups <- data.frame(numeric(length = 2)) #This for loop had trouble knitting to html, so I included hashtags to force it to finish. WE DID USE THIS CODE TO PRODUCE RESULTS FOR THE ms
-
-   # for (ii in 4:ncol(aem_bact_groups_rel0.1)) {
-      
-    #  ff <- as.formula(paste0(colnames(aem_bact_groups_rel0.1)[ii]," ~ Group + (1|Sex)"))
-    #  glmer_temp <- glmer.nb(ff, data = aem_bact_groups_rel0.1, control=glmerControl(optimizer="bobyqa", tolPwrss=1e-3, optCtrl = list(maxfun = 100000))) #tells the for loop to run linear model  for each column specified above
-    #  p_value <- Anova(glmer_temp)$`Pr(>Chisq)` #extracts f statistics
-    #  p_vals_bact_groups[ii-3,] <- p_value
-    #}
-
-#PHYLUM Firmicutes
-p_vals_firm_groups <- data.frame(numeric(length = 2))
-
-    for (ii in 4:ncol(aem_firm_groups_rel0.1)) {
-  
-      col = aem_firm_groups_rel0.1[,ii] #this tells the for loop that it should iterate through columns in the data set
-      lm_temp <- lm(col ~ Group, data = aem_firm_groups_rel0.1) #tells the for loop to run linear model for each column specified above
-      fstat <- summary(lm_temp)$fstatistic
-      p_value <- pf(fstat[1], fstat[2], fstat[3], lower.tail = F) #extracts p value
-      p_vals_firm_groups[ii-3,] <- p_value
-    }
-
-#PHYLUM Proteobacteria
-p_vals_proteo_groups <- data.frame(numeric(length = 2))
-
-    for (ii in 1:ncol(aem_proteo_groups_rel0.1)) {
-  
-      col = aem_proteo_groups_rel0.1[,ii] #this tells the for loop that it should iterate through columns in the data set
-      lm_temp <- lm(col ~ Group, data = aem_proteo_groups_rel0.1) #tells the for loop to run linear model  for each column specified above
-      fstat <- summary(lm_temp)$fstatistic
-      p_value <- pf(fstat[1], fstat[2], fstat[3], lower.tail = F) #extracts p value
-      p_vals_proteo_groups[ii,] <- p_value
-    }
-
-#Convert dataframes with p_values into tables we can work with
-
-#PHYLUM Bacterioidetes
-p_vals_bact_groups <- p_vals_bact_groups %>% drop_na()
-colnames(p_vals_bact_groups) <- c("pval")
-p_vals_bact_groups <- as.data.frame(p_vals_bact_groups)
-
-#PHYLUM Firmicutes
-p_vals_firm_groups <- p_vals_firm_groups %>% drop_na()
-colnames(p_vals_firm_groups) <- c("pval")
-p_vals_firm_groups <- as.data.frame(p_vals_firm_groups)
-
-#PHYLUM Proteobacteria
-p_vals_proteo_groups <- p_vals_proteo_groups %>% drop_na()
-colnames(p_vals_proteo_groups) <- c("pval")
-p_vals_proteo_groups <- as.data.frame(p_vals_proteo_groups)
-
-#Correct p-values for multiple tests using false discovery rate
-p_vals_bact_groups_fdr <- p.adjust(p_vals_bact_groups$pval, method = "fdr")
-p_vals_firm_groups_fdr <- p.adjust(p_vals_firm_groups$pval, method = "fdr")
-p_vals_proteo_groups_fdr <- p.adjust(p_vals_proteo_groups$pval, method = "fdr")
-
-#p_vals_bact_groups_fdr
-#p_vals_firm_groups_fdr
-#p_vals_proteo_groups_fdr
-```
-
-## Make Box Plots for ALL ORDERS
-```{r}
-#Log-transform y axis so that all values will show up
-groups_bacteroidetes_order_abun <- read_excel("groups_bacteroidetes_order_abun.xlsx")
-groups_bacteroidetes_order_abun <- groups_bacteroidetes_order_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
-
-groups_firmicutes_order_abun <- read_excel("groups_firmicutes_order_abun.xlsx")
-groups_firmicutes_order_abun <- groups_firmicutes_order_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
-
-groups_proteobacteria_order_abun <- read_excel("groups_proteobacteria_order_abun.xlsx")
-groups_proteobacteria_order_abun  <- groups_proteobacteria_order_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
-
-
-#PHYLUM Bacterioidetes
-bact_group_plots <- ggplot(groups_bacteroidetes_order_abun, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = "Orders by Elephant Group", fill = "Elephant Group") + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(legend.position = c(0.65,0.7)) + theme(axis.text.x = element_text(face = "italic"))  
-
-
-#PHYLUM Firmicutes
-firm_group_plots <- ggplot(groups_firmicutes_order_abun, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = F) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(axis.text.x = element_text(face = "italic"))
-
-#PHYLUM Proteobacteria
-proteo_group_plots <- ggplot(groups_proteobacteria_order_abun, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = F) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(axis.text.x = element_text(face = "italic"))
-
-jpeg("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/phylum_group_plots.jpeg", width=2000, height=3000, units='px', res=250) 
-
-plot_grid(bact_group_plots, firm_group_plots, proteo_group_plots, nrow = 3, labels = c("A", "B", "C"))
-
-dev.off()
-
-#For combining figures
-
-phy_group_plot <- plot_grid(bact_group_plots, firm_group_plots, proteo_group_plots, nrow = 3, labels = c("D", "E", "F"))
-
-##WE did not look for genera within Saprospirales, because it is in such low abundance (only found in n = 8 samples)
-
-
-###COMBINE PHYLUM PLOTS
-pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/phy_combined_plots.pdf", width=15, height=20) 
-
-plot_grid(phy_species_plot, phy_group_plot, ncol = 2)
+plot_grid(flavobacteriales,
+          bacteroidales,
+          wautersiella,
+          ncol = 3)
 
 dev.off()
 ```
 
-## Make Box Plots for FILTERED ORDERS (AVERAGE RELATIVE ABUNDANCE = 0.1 or more)
+These plots are included as the basis for Figure 2 (a-c) in the final ms.
+
+#### 3b: Plot differential abundance for orders and genera in Firmicutes; run the Rmd chunk below.
+
+##### Plot differential abundance within Firmicutes:
 ```{r}
-#Log-transform y axis so that all values will show up
-groups_bacteroidetes_order_abun_rel0.1 <- read_excel("groups_bacteroidetes_order_abun_rel0.1.xlsx")
-groups_bacteroidetes_order_abun_rel0.1 <- groups_bacteroidetes_order_abun_rel0.1 %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Load Firmicutes orders data
+load("data/firmicutes_orders.Rda")
 
-groups_firmicutes_order_abun_rel0.1 <- read_excel("groups_firmicutes_order_abun_rel0.1.xlsx")
-groups_firmicutes_order_abun_rel0.1 <- groups_firmicutes_order_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Get total abundance per individual per order, square root transform data for ease of visualization, and spread the dataset.
+firmicutes_orders <- firmicutes_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  mutate(sqrt_abundance = sqrt(abundance)) %>%
+  dplyr::select(-abundance) %>%
+  spread(order, sqrt_abundance) 
 
-groups_proteobacteria_order_abun_rel0.1 <- read_excel("groups_proteobacteria_order_abun_rel0.1.xlsx")
-groups_proteobacteria_order_abun_rel0.1  <- groups_proteobacteria_order_abun_rel0.1 %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Rename groups for easier plot visualization
+firmicutes_orders$group_code <- factor(with(firmicutes_orders, ifelse(group=="L.africana_Crop_raider_Savanna", "Laf:S+CR",
+                                                                      ifelse(group=="L.africana_Crop_raider_Forest", "Laf:F+CR",
+                                                                             ifelse(group=="L.africana_Savanna", "Laf:S",
+                                                                                    ifelse(group=="L.africana_Forest", "Laf:F",
+                                                                                           ifelse(group=="L.cyclotis_Forest", "Lcy:F","done")))))))
 
+# Reorder group codes to be more sensible when plotting
+firmicutes_orders <- firmicutes_orders %>%
+  mutate(group_code = fct_relevel(group_code, c("Lcy:F","Laf:F","Laf:F+CR","Laf:S","Laf:S+CR")))
 
-#PHYLUM Bacterioidetes
-bact_group_plots_rel0.1 <- ggplot(groups_bacteroidetes_order_abun_rel0.1, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) + theme(axis.text = element_text(size = 20)) + labs(title = "Orders by Elephant Group", fill = "Elephant Group") + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(legend.position = c(0.85,0.8)) + theme(legend.text = element_text(size = 20)) + theme(axis.text.x = element_text(face = "italic", size = 20)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20))
+# Plot Order Bacillales
+bacillales <- ggplot(firmicutes_orders, aes(x = group_code, y = Bacillales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Bacillales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
+# Plot Order Clostridiales
+clostridiales <- ggplot(firmicutes_orders, aes(x = group_code, y = Clostridiales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Clostridiales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-#PHYLUM Firmicutes
-firm_group_plots_rel0.1 <- ggplot(groups_firmicutes_order_abun_rel0.1, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = F) + theme(axis.text = element_text(size = 15)) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(axis.text.x = element_text(face = "italic", size = 20)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20))
+# Load genus data
+load("data/bacillales_genera.Rda")
 
-#PHYLUM Proteobacteria
-proteo_group_plots_rel0.1 <- ggplot(groups_proteobacteria_order_abun_rel0.1, aes(x = order, y = sqrt_abundance, fill = group)) + geom_boxplot(outlier.shape = NA, show.legend = F) + theme(axis.text = element_text(size = 15)) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(axis.title.x = element_blank()) + theme(axis.title.y = element_blank()) + theme(axis.text.x = element_text(face = "italic", size = 20)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20))
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+bacillales_genera <- bacillales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
+  summarize(abundance = sum(abundance)) %>%
+  mutate(sqrt_abundance = sqrt(abundance)) %>%
+  dplyr::select(-abundance) %>%
+  spread(genus, sqrt_abundance) %>%
+  filter(diet == "Nonraider" & habitat == "Forest")
 
-jpeg("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/phylum_group_plots_rel0.1.jpeg", width=2000, height=3000, units='px', res=250) 
+# Rename groups for easier plot visualization
+bacillales_genera$group_code <- factor(with(bacillales_genera, ifelse(group=="L.africana_Forest", "Laf:F",
+                                                                      ifelse(group=="L.cyclotis_Forest", "Lcy:F","done"))))
 
-plot_grid(bact_group_plots_rel0.1, firm_group_plots_rel0.1, proteo_group_plots_rel0.1, nrow = 3, labels = c("A", "B", "C"))
+# Reorder group codes (species) to be more sensible when plotting
+bacillales_genera <- bacillales_genera %>%
+  mutate(group_code = fct_relevel(group_code, c("Lcy:F","Laf:F")))
 
-dev.off()
+# Plot Genus Bacillus by African elephant species
+bacillus <- ggplot(bacillales_genera, aes(x = group_code, y = Bacillus)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Bacillus", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
+# Plot Genus Solibacillus by African elephant species
+solibacillus <- ggplot(bacillales_genera, aes(x = group_code, y = Solibacillus)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Solibacillus", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-#For combining figures
+# Plot all Firmicutes 
+pdf("figures/firmicutes.pdf", width = 18, height = 6)
 
-phy_group_plot_rel0.1 <- plot_grid(bact_group_plots_rel0.1, firm_group_plots_rel0.1, proteo_group_plots_rel0.1, nrow = 3, labels = c("D", "E", "F"), label_size = 20)
-
-
-##WE did not look for genera within Saprospirales, because it is in such low abundance (only found in n = 8 samples)
-
-
-###COMBINE PHYLUM PLOTS
-pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/phy_combined_plots_rel0.1.pdf", width=15, height=20)
-
-plot_grid(phy_species_plot_rel0.1, phy_group_plot_rel0.1, ncol = 2)
-
-dev.off()
-```
-
-# OTU ABUNDANCE - GENUS LEVEL
-
-## Statistical Signifiance of Genera within Orders Bacillales and Lactobacillales By African Elephant Species
-```{r}
-#Now we want to find the genera within each of the significant orders (Bacillales and Lactobacillales within Firmicutes) and see which are significantly different between africana and cyclotis species
-    
-#Data frames with genera only within the significant orders for african elephant SPECIES
-aem_firm_bacillales <- aem_firmicutes %>% filter(Order == "o__Bacillales")
-aem_firm_lactobacillales <- aem_firmicutes %>% filter(Order == "o__Lactobacillales")
-
-#Data frames with genera only within the significant orders for african elephant GROUPS
-aem_bact_flavobacteriales <- aem_bacteroidetes %>% filter(Order == "o__Flavobacteriales")
-aem_proteo_pseudomonadales <- aem_proteobacteria %>% filter(Order == "o__Pseudomonadales")
-
-#Extract Genera from Bacillales and Lactobacillales within Firmicutes (SPECIES)
-
-    #Bacillales
-    aem_firm_bacillales_genera <- aem_firm_bacillales[,-c(1:6,8)]
-    aem_firm_bacillales_genera <- as.data.frame(aem_firm_bacillales_genera)
-    aem_firm_bacillales_genera <- aem_firm_bacillales_genera %>% group_by(Genus) %>% summarize_all(funs(sum))
-    aem_firm_bacillales_genera <- aem_firm_bacillales_genera %>% drop_na()
-    aem_firm_bacillales_genera <- column_to_rownames(aem_firm_bacillales_genera, "Genus")
-    aem_firm_bacillales_genera_t <- t(aem_firm_bacillales_genera)
-    aem_firm_bacillales_genera_t <- as.data.frame(aem_firm_bacillales_genera_t)
-    aem_firm_bacillales_genera_t <- aem_firm_bacillales_genera_t %>% rownames_to_column("sample_id")
-    aem_firm_bacillales_genera_sums <- merge(metadata, aem_firm_bacillales_genera_t, by = "sample_id")
-    
-    #Lactobacillales
-    aem_firm_lactobacillales_genera <- aem_firm_lactobacillales[,-c(1:6,8)]
-    aem_firm_lactobacillales_genera <- as.data.frame(aem_firm_lactobacillales_genera)
-    aem_firm_lactobacillales_genera <- aem_firm_lactobacillales_genera %>% group_by(Genus) %>% summarize_all(funs(sum))
-    aem_firm_lactobacillales_genera <- aem_firm_lactobacillales_genera %>% drop_na()
-    aem_firm_lactobacillales_genera <- column_to_rownames(aem_firm_lactobacillales_genera, "Genus")
-    aem_firm_lactobacillales_genera_t <- t(aem_firm_lactobacillales_genera)
-    aem_firm_lactobacillales_genera_t <- as.data.frame(aem_firm_lactobacillales_genera_t)
-    aem_firm_lactobacillales_genera_t <- aem_firm_lactobacillales_genera_t %>% rownames_to_column("sample_id")
-    aem_firm_lactobacillales_genera_sums <- merge(metadata, aem_firm_lactobacillales_genera_t, by = "sample_id")
-
-
-#Extract Genera from Flavobacteriales within Bacteroidetes (GROUPS)
-
-    #Flavobacteriales
-    aem_bact_flavobacteriales_genera <- aem_bact_flavobacteriales[,-c(1:6,8)]
-    aem_bact_flavobacteriales_genera <- as.data.frame(aem_bact_flavobacteriales_genera)
-    aem_bact_flavobacteriales_genera <- aem_bact_flavobacteriales_genera %>% group_by(Genus) %>% summarize_all(funs(sum))
-    aem_bact_flavobacteriales_genera <- aem_bact_flavobacteriales_genera %>% drop_na()
-    aem_bact_flavobacteriales_genera <- column_to_rownames(aem_bact_flavobacteriales_genera, "Genus")
-    aem_bact_flavobacteriales_genera_t <- t(aem_bact_flavobacteriales_genera)
-    aem_bact_flavobacteriales_genera_t <- as.data.frame(aem_bact_flavobacteriales_genera_t)
-    aem_bact_flavobacteriales_genera_t <- aem_bact_flavobacteriales_genera_t %>% rownames_to_column("sample_id")
-    aem_bact_flavobacteriales_genera_sums <- merge(metadata, aem_bact_flavobacteriales_genera_t, by = "sample_id")
-
-    
-#Extract Genera from Pseudomonadales within Proteobacteria (GROUPS)
-
-    #Pseudomonadales
-    aem_proteo_pseudomonadales_genera <- aem_proteo_pseudomonadales[,-c(1:6,8)]
-    aem_proteo_pseudomonadales_genera <- as.data.frame(aem_proteo_pseudomonadales_genera)
-    aem_proteo_pseudomonadales_genera <- aem_proteo_pseudomonadales_genera %>% group_by(Genus) %>% summarize_all(funs(sum))
-    aem_proteo_pseudomonadales_genera <- aem_proteo_pseudomonadales_genera %>% drop_na()
-    aem_proteo_pseudomonadales_genera <- column_to_rownames(aem_proteo_pseudomonadales_genera, "Genus")
-    aem_proteo_pseudomonadales_genera_t <- t(aem_proteo_pseudomonadales_genera)
-    aem_proteo_pseudomonadales_genera_t <- as.data.frame(aem_proteo_pseudomonadales_genera_t)
-    aem_proteo_pseudomonadales_genera_t <- aem_proteo_pseudomonadales_genera_t %>% rownames_to_column("sample_id")
-    aem_proteo_pseudomonadales_genera_sums <- merge(metadata, aem_proteo_pseudomonadales_genera_t, by = "sample_id")
-    
-  
-#Separate genera into subsetted datasets
-aem_firm_lactobacillales_genera_sums_forest_ncr <- aem_firm_lactobacillales_genera_sums %>% filter(Habitat == "Forest") %>% filter(Raider == "No")
-aem_firm_bacillales_genera_sums_forest_ncr <- aem_firm_bacillales_genera_sums %>% filter(Habitat == "Forest") %>% filter(Raider == "No")
-
-aem_bacillales_genera_by_species <- aem_firm_bacillales_genera_sums_forest_ncr[,-c(1:3,5,6,9:11)]
-aem_lactobacillales_genera_by_species <- aem_firm_lactobacillales_genera_sums_forest_ncr[,-c(1:3,5,6,9:11)]
-
-
-aem_bact_flavobacteriales_genera_sums_africana <- aem_bact_flavobacteriales_genera_sums %>% filter(Species == "africana")
-aem_proteo_pseudomonadales_genera_sums_africana <- aem_proteo_pseudomonadales_genera_sums %>% filter(Species == "africana")
-
-aem_flavobacteriales_genera_by_group <- aem_bact_flavobacteriales_genera_sums_africana[,-c(1:6,9,11)]
-aem_pseudomonadales_genera_by_group <- aem_proteo_pseudomonadales_genera_sums_africana[,-c(1:6,9,11)]
-
-
-colnames(aem_flavobacteriales_genera_by_group) <- c("Age", "Sex", "Group", "Chryseobacterium", "Elizabethkingia", "Flavobacterium", "Fluviicola", "Wautersiella")
-colnames(aem_pseudomonadales_genera_by_group) <- c("Age", "Sex", "Group", "Acinetobacter", "Perlucidibaca", "Pseudomonas", "Serpens" )
-
-#Calculate p-values for genera at group level and at species level
-
-gwaut <- glmer.nb(Wautersiella ~ Group + (1|Sex), data = aem_flavobacteriales_genera_by_group)
-gwaut_p <- Anova(gwaut)$`Pr(>Chisq)`
-
-#Post-hoc Tukey_test
-post_gwaut <- glht(gwaut, mcp(Group = "Tukey"))
-summary(post_gwaut)
-
-gacin <- glmer.nb(Acinetobacter ~ Group + (1|Sex), data = aem_pseudomonadales_genera_by_group)
-gacin_p <- Anova(gacin)$`Pr(>Chisq)`
-
-#Post-hoc Tukey_test
-post_gacin <- glht(gacin, mcp(Group = "Tukey"))
-summary(post_gacin)
-
-gbacillus <- glmer.nb(g__Bacillus ~ Species + (1|Sex), data = aem_bacillales_genera_by_species)
-gbacillus_p <- Anova(gbacillus)$`Pr(>Chisq)`
-
-gsolibac <- glmer.nb(g__Solibacillus ~ Species + (1|Sex), data = aem_bacillales_genera_by_species)
-gsolibac_p <- Anova(gsolibac)$`Pr(>Chisq)`
-
-p_vals_bacillales_species <- as.data.frame(c(gbacillus_p, gsolibac_p))
-colnames(p_vals_bacillales_species) <- c("pval")
-p_vals_bacillales_species_fdr <- p.adjust(p_vals_bacillales_species$pval, method = "fdr")
-```
-
-## calculate p values for ALL GENERA
-```{r}
-#P-values
-
-#Bacillales
-p_vals_bacillales_genera_by_species <- data.frame(numeric(length = ncol(aem_bacillales_genera_by_species)))
-
-    for (ii in 1:ncol(aem_bacillales_genera_by_species)) {
-  
-      col = aem_bacillales_genera_by_species[,ii] #this tells the for loop that it should iterate through columns in the data set
-      lm_temp <- lm(col ~ Species, data = aem_bacillales_genera_by_species) #tells the for loop to run linear model  for each column           specified above
-      p_value <- summary(lm_temp)$coefficients[2,4] #extracts p value
-      p_vals_bacillales_genera_by_species[ii,] <- p_value
-    }
-
-#Lactobacillales
-p_vals_lactobacillales_genera_by_species <- data.frame(numeric(length = ncol(aem_lactobacillales_genera_by_species)))
-
-    for (ii in 1:ncol(aem_lactobacillales_genera_by_species)) {
-  
-      col = aem_lactobacillales_genera_by_species[,ii] #this tells the for loop that it should iterate through columns in the data set
-      lm_temp <- lm(col ~ Species, data = aem_lactobacillales_genera_by_species) #tells the for loop to run linear model  for each            column specified above
-      p_value <- summary(lm_temp)$coefficients[2,4] #extracts p value
-      p_vals_lactobacillales_genera_by_species[ii,] <- p_value
-    }
-
-#Correct p-values for multiple tests using false discovery rate
-p_vals_bacillales_genera_by_species <- p_vals_bacillales_genera_by_species %>% drop_na() %>% as.data.frame()
-colnames(p_vals_bacillales_genera_by_species) <- c("pvals")
-
-p_vals_bacillales_genera_by_species_fdr <- p.adjust(p_vals_bacillales_genera_by_species$pvals, method = "fdr")
-
-p_vals_lactobacillales_genera_by_species <- p_vals_lactobacillales_genera_by_species %>% drop_na() %>% as.data.frame()
-colnames(p_vals_lactobacillales_genera_by_species) <- c("pvals")
-p_vals_lactobacillales_genera_by_species_fdr <- p.adjust(p_vals_lactobacillales_genera_by_species$pvals, method ="fdr")
-
-```
-
-## Make box plots for ALL GENERA
-```{r}
-#square root transform the y-axis
-species_bacillales_genera_abun <- read_excel("species_bacillales_genera_abun.xlsx")
-species_bacillales_genera_abun <- species_bacillales_genera_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
-
-species_lactobacillales_genera_abun <- read_excel("species_lactobacillales_genera_abun.xlsx")
-species_lactobacillales_genera_abun <- species_lactobacillales_genera_abun %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
-
-
-#Plots of genera within Firmicutes Orders by African Elephant Species
-bacillales_plot <- ggplot(species_bacillales_genera_abun, aes(x = order, y = sqrt_abundance, fill = species)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = "Genera of Order Bacillales", fill = "Elephant Species", x = "Genus", y = "Mean Abundance") + scale_fill_manual(values = c("red", "blue")) + theme(legend.text = element_text(face = "italic")) + theme(axis.text.x = element_text(face = "italic")) + theme(legend.position = c(0.05, 0.7))
-
-lacto_plot <- ggplot(species_lactobacillales_genera_abun, aes(x = order, y = sqrt_abundance, fill = species)) + geom_boxplot(outlier.shape = NA, show.legend = F) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = "Genera of Order Lactobacillales", x = "Genus", y = "Mean Abundance") + scale_fill_manual(values = c("red", "blue")) + theme(axis.text.x = element_text(face = "italic"))
-
-
-jpeg("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/firmicutes_genera_byspecies.jpeg", width=3700, height=5000, units='px', res=600) 
-
-plot_grid(bacillales_plot, lacto_plot, nrow = 2, labels = c("A", "B"))
+plot_grid(bacillales,
+          clostridiales,
+          bacillus,
+          solibacillus,
+          ncol = 4)
 
 dev.off()
 ```
 
-## Make Box Plots for FILTERED GENERA (AVERAGE RELATIVE ABUNDANCE = 0.1 OR MORE)
+These plots are included as the basis for Figure 2 (d-g) in the final ms.
+
+#### 3c: Plot differential abundance for orders and genera in Proteobacteria; run the Rmd chunk below.
+
+##### Plot differential abundance within Proteobacteria:
 ```{r}
-#BY SPECIES
+# Load Proteobacteria orders data
+load("data/proteobacteria_orders.Rda")
 
-#square root transform the y-axis
-bacillales_genera_abun_rel0.1 <- read_excel("bacillales_genera_abun_rel0.1.xlsx")
-bacillales_genera_abun_rel0.1 <- bacillales_genera_abun_rel0.1 %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Get total abundance per individual per order, square root transform data for ease of visualization, and spread the dataset.
+proteobacteria_orders <- proteobacteria_orders %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, order, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, order) %>%
+  summarize(abundance = sum(abundance)) %>%
+  mutate(sqrt_abundance = sqrt(abundance)) %>%
+  dplyr::select(-abundance) %>%
+  spread(order, sqrt_abundance) 
 
-#Plots of genera within Firmicutes Orders by African Elephant Species
-bacillales_plot_rel0.1 <- ggplot(bacillales_genera_abun_rel0.1, aes(x = Genus, y = sqrt_abundance, fill = Species)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(axis.text = element_text(size = 15)) + theme(axis.text.x = element_text(size = 20)) + labs(title = "Genera of Phylum Firmicutes: Order Bacillales", fill = "Elephant Species", x = "Genus", y = "Mean Abundance") + theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) + scale_fill_manual(values = c("red", "blue")) + theme(legend.text = element_text(face = "italic")) + theme(axis.text.x = element_text(face = "italic")) + theme(legend.position = c(0.2, 0.7)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20)) + theme(legend.text = element_text(size = 20)) + theme(axis.title = element_text(size = 20))
+# Rename groups for easier plot visualization
+proteobacteria_orders$group_code <- factor(with(proteobacteria_orders, ifelse(group=="L.africana_Crop_raider_Savanna", "Laf:S+CR",
+                                                                              ifelse(group=="L.africana_Crop_raider_Forest", "Laf:F+CR",
+                                                                                     ifelse(group=="L.africana_Savanna", "Laf:S",
+                                                                                            ifelse(group=="L.africana_Forest", "Laf:F",
+                                                                                                   ifelse(group=="L.cyclotis_Forest", "Lcy:F","done")))))))
 
+# Reorder group codes to be more sensible when plotting
+proteobacteria_orders <- proteobacteria_orders %>%
+  mutate(group_code = fct_relevel(group_code, c("Lcy:F","Laf:F","Laf:F+CR","Laf:S","Laf:S+CR")))
 
-pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/firmicutes_genera_byspecies.pdf", width=12, height=10) 
+# Plot Order Enterobacteriales
+enterobacteriales <- ggplot(proteobacteria_orders, aes(x = group_code, y = Enterobacteriales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Enterobacteriales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-bacillales_plot_rel0.1
+# Plot Order Pseudomonadales
+pseudomonadales <- ggplot(proteobacteria_orders, aes(x = group_code, y = Pseudomonadales)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Pseudomonadales", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-dev.off()
+# Load genus data
+load("data/pseudomonadales_genera.Rda")
 
+# Get total abundance per individual per order and spread the dataset to prepare for general linear mixed models.
+pseudomonadales_genera <- pseudomonadales_genera %>%
+  dplyr::select(ind_id, group, phylogeny, diet, habitat, sex, genus, abundance) %>%
+  group_by(ind_id, group, phylogeny, diet, habitat, sex, genus) %>%
+  summarize(abundance = sum(abundance)) %>%
+  mutate(sqrt_abundance = sqrt(abundance)) %>%
+  dplyr::select(-abundance) %>%
+  spread(genus, sqrt_abundance) %>%
+  filter(phylogeny == "africana")
 
-#BY GROUPS
+# Rename groups for easier plot visualization
+pseudomonadales_genera$group_code <- factor(with(pseudomonadales_genera, ifelse(group=="L.africana_Crop_raider_Savanna", "Laf:S+CR",
+                                                                              ifelse(group=="L.africana_Crop_raider_Forest", "Laf:F+CR",
+                                                                                     ifelse(group=="L.africana_Savanna", "Laf:S",
+                                                                                            ifelse(group=="L.africana_Forest", "Laf:F", "done"))))))
 
+# Reorder group codes (species) to be more sensible when plotting
+pseudomonadales_genera <- pseudomonadales_genera %>%
+  mutate(group_code = fct_relevel(group_code, c("Laf:F","Laf:F+CR","Laf:S","Laf:S+CR")))
 
-flavobacteriales_genera_abun_rel0.1 <- read_excel("flavobacteriales_genera_abun_rel0.1.xlsx")
-flavobacteriales_genera_abun_rel0.1 <- flavobacteriales_genera_abun_rel0.1 %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Plot Genus Acinetobacter by African elephant species
+acinetobacter <- ggplot(pseudomonadales_genera, aes(x = group_code, y = Acinetobacter)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = T) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(title = "Acinetobacter", x = "Group", y = "Abundance") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
 
-pseudomonadales_genera_abun_rel0.1 <- read_excel("pseudomonadales_genera_abun_rel0.1.xlsx")
-pseudomonadales_genera_abun_rel0.1 <- pseudomonadales_genera_abun_rel0.1 %>% mutate(log_abundance = log10(abundance), sqrt_abundance = sqrt(abundance))
+# Plot all Proteobacteria 
+pdf("figures/proteobacteria.pdf", width = 18, height = 6)
 
-#Flavobacteriales Plot
-
-flavobacteriales_plot_rel0.1 <- ggplot(flavobacteriales_genera_abun_rel0.1, aes(x = Genus, y = sqrt_abundance, fill = Group)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(axis.text = element_text(size = 15)) + theme(axis.text.x = element_text(size = 20)) + labs(title = "Genus of Phylum Bacteroidetes: Order Flavobacteriales", fill = "Elephant Group", x = "Genus", y = "Mean Abundance") + theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(legend.text = element_text(face = "italic")) + theme(axis.text.x = element_text(face = "italic")) + theme(legend.position = c(0.8, 0.8)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20)) + theme(legend.text = element_text(size = 20)) + theme(axis.title = element_text(size = 20))
-
-#Pseudomonadales Plot
-
-pseudomonadales_plot_rel0.1 <- ggplot(pseudomonadales_genera_abun_rel0.1, aes(x = Genus, y = sqrt_abundance, fill = Group)) + geom_boxplot(outlier.shape = NA, show.legend = T) + theme(axis.text = element_text(size = 15)) + theme(axis.text.x = element_text(size = 20)) + labs(title = "Genus of Phylum Proteobacteria: Order Pseudomonadales", fill = "Elephant Group", x = "Genus", y = "Mean Abundance") + theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) + scale_fill_manual(values = c("green", "purple", "red", "goldenrod")) + theme(legend.text = element_text(face = "italic")) + theme(axis.text.x = element_text(face = "italic")) + theme(legend.position = c(0.8, 0.8)) + theme(plot.background = element_blank())  + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.title = element_text(size = 20)) + theme(legend.text = element_text(size = 20)) + theme(axis.title = element_text(size = 20))
-
-#Combined Plot
-
-pdf("/Users/joegunn/Desktop/Grad_School_Stuff/Projects/Elephant_Microbiome/NEW_STATS/AEMB_FINAL_STATS/African_Elephant_Microbiome/genera_combined_bygroup.pdf", width=10, height=15) 
-
-plot_grid(flavobacteriales_plot_rel0.1, pseudomonadales_plot_rel0.1, nrow = 2, labels = c("A", "B"), label_size = 20)
+plot_grid(enterobacteriales,
+          pseudomonadales,
+          acinetobacter,
+          ncol = 3)
 
 dev.off()
 ```
 
+These plots are included as the basis for Figure 2 (h-j) in the final ms.
 
 ### ----------------------- END OF ANALYSIS 4: MICROBIOME DIVERSITY AND DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
