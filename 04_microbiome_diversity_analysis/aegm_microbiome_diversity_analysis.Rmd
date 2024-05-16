@@ -22,6 +22,7 @@ library(cowplot)
 library(tidyverse)
 library(phyloseq)
 library(lme4)
+library(nlme)
 library(car)
 library(multcomp)
 library(devtools)
@@ -774,7 +775,7 @@ In this step, we generate box plots to visualize differential OTU abundance at t
 
 #### 3a: Plot differential abundance for orders and genera in Bacteroidetes; run the Rmd chunk below.
 
-##### Plot differential abundance within Bacteroidetes:
+##### Plot differential abundance within Bacteroidetes: `figures/bacteroidetes.pdf`
 ```{r}
 # Load Bacteroidetes orders data
 load("data/bacteroidetes_orders.Rda")
@@ -885,7 +886,7 @@ These plots are included as the basis for Figure 2 (a-c) in the final ms.
 
 #### 3b: Plot differential abundance for orders and genera in Firmicutes; run the Rmd chunk below.
 
-##### Plot differential abundance within Firmicutes:
+##### Plot differential abundance within Firmicutes: `figures/firmicutes.pdf`
 ```{r}
 # Load Firmicutes orders data
 load("data/firmicutes_orders.Rda")
@@ -1011,7 +1012,7 @@ These plots are included as the basis for Figure 2 (d-g) in the final ms.
 
 #### 3c: Plot differential abundance for orders and genera in Proteobacteria; run the Rmd chunk below.
 
-##### Plot differential abundance within Proteobacteria:
+##### Plot differential abundance within Proteobacteria: `figures/proteobacteria.pdf`
 ```{r}
 # Load Proteobacteria orders data
 load("data/proteobacteria_orders.Rda")
@@ -1123,8 +1124,535 @@ These plots are included as the basis for Figure 2 (h-j) in the final ms.
 ### ----------------------- END OF PHASE 2: DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
 
 ## PHASE 3: OTU DIVERSITY ANALYSIS
-In this phase of the analysis, we assess differences in microbiome composition, diversity, and structure among African elephant groups using a multivariate framework. We consider all microbial OTU abundances as response variables in PCOA. 
+In this phase of the analysis, we assess differences in microbiome composition, diversity, and structure among African elephant groups using a multivariate framework. Importantly, we use the FULL microbial dataset (with all, raw OTUs and their associated abundances included in the full dataset) for these analyses. We first calculate intrinsic diversity within each elephant group of interest (alpha diversity) and compare metrics among groups using linear mixed effect models. We then assess differences microbial community structure and composition among groups (beta diversity) by considering all microbial OTU abundances as response variables in PCOA. Finally, we use beta dispersion to assess differences in within-group variances around mean microbial diversity.
 
-### STEP 1: 
+### STEP 1: Read in and prepare data for all downstream analyses, and compute alpha diversity for each sample.
+In this step, we convert the full order dataset into long format, such that individual OTUs and their corresponding abundances within African elephant groups are columns in a matrix, with metadata as appended columns at the lefthand side of the table. This order matrix is then pared down to include only the groups of interest for downstream analyes.
+
+#### 1a: Read in order data and convert to long format; run the Rmd chunk below.
+
+##### Read in order data and convert to long format:
+```{r}
+# Load full dataset
+load("../03_core_microbiome_analysis/data/full_data.Rda")
+
+# Select only columns needed for analysis and spread so that unique OTUs are columns
+otu_matrix <- full_data %>%
+  dplyr::select(ind_id, otu_id, phylogeny, diet, habitat, age, sex, group, abundance) %>%
+  spread(otu_id, abundance) %>%
+  column_to_rownames("ind_id")
+  
+# save otu matrix for downstream analyses
+save(otu_matrix, file = "data/otu_matrix.Rda")
+```
+
+### STEP 2: Assess alpha diversity within African elephant groups of interest.
+In this step, we calculate alpha diversity as the Shannon Diversity Index within African elephant phylogenetic groups (i.e., species: <i>L. africana</i> and <i>L. cyclotis</i>), diets (crop-raiders and non-crop-raiders), and habitats (forest and savanna). We compare alpha diversity among groups using linear mixed effect models, including sex as a random effect in each model.
+
+#### 2a: Compute alpha diversity across samples; run the Rmd chunk below:
+
+##### Compute alpha diversity across samples:
+```{r}
+# Load otu matrix
+load("data/otu_matrix.Rda")
+
+# Load sample metadata
+load("../02_data_summary_analysis/data/metadata.Rda")
+
+# calculate Shannon diversity for each individual in the dataset
+shannon <- otu_matrix %>%
+  mutate(shannon_diversity = diversity(otu_matrix[7:ncol(otu_matrix)], index = "shannon")) %>%
+  dplyr::select(phylogeny, diet, habitat, sex, age, shannon_diversity)
+
+# Summarize mean, standard deviation (sd), and range (minimum - maximum) of alpha diversity across samples
+shannon %>%
+  summarize(mean = mean(shannon_diversity),
+            sd = sd(shannon_diversity),
+            min = min(shannon_diversity),
+            max = max(shannon_diversity))
+
+# Save shannon diversity data for downstream analyses
+save(shannon, file = "data/shannon.Rda")
+```
+
+<b> Alpha diversity metrics</b>: <br>
+mean = 4.964 (1.209)
+range = 2.047 - 6.507
+
+#### 2b: Calculate alpha diversity wihtin and between species and compare; run the Rmd chunk below:
+
+##### Calculate alpha diversity within species and compare:
+```{r}
+# Load shannon diversity data
+load("data/shannon.Rda")
+
+# Get only forest non-crop-raiders to assess species differences
+shannon <- shannon %>%
+  filter(diet == "Nonraider" & habitat == "Forest")
+
+# Summarize alpha diversity metrics by species
+shannon %>%
+  group_by(phylogeny) %>%
+  summarize(mean = mean(shannon_diversity),
+            sd = sd(shannon_diversity),
+            min = min(shannon_diversity),
+            max = max(shannon_diversity))
+  
+
+# Run linear mixed effect model by species
+lme <- lme(shannon_diversity ~ phylogeny, random = ~1|sex, data = shannon)
+
+# Get statistics
+anova(lme)
+```
+
+<b> Alpha diversity metrics by species </b>: <br>
+range = 2.047 - 6.324
+mean<sub><i>L. africana</i> = 4.681 (0.996)
+mean<sub><i>L. cyclotis</i> = 4.186 (0.149)
+
+<b> Comparison of alpha diversity by species </b>: <br>
+p_value = 0.449, F = 0.604
+
+#### 2c: Calculate alpha diversity wihtin and between diet and habitat and compare; run the Rmd chunk below:
+
+##### Calculate alpha diversity within diet and habitat and compare:
+```{r}
+# Load shannon diversity data
+load("data/shannon.Rda")
+
+# Get only forest non-crop-raiders to assess species differences
+shannon <- shannon %>%
+  filter(phylogeny == "africana")
+
+# Summarize alpha diversity metrics by diet
+shannon %>%
+  group_by(diet) %>%
+  summarize(mean = mean(shannon_diversity),
+            sd = sd(shannon_diversity),
+            min = min(shannon_diversity),
+            max = max(shannon_diversity))
+  
+# Summarize alpha diversity metrics by habitat
+shannon %>%
+  group_by(habitat) %>%
+  summarize(mean = mean(shannon_diversity),
+            sd = sd(shannon_diversity),
+            min = min(shannon_diversity),
+            max = max(shannon_diversity))
+
+# Run linear mixed effect model by diet and habitat, including an interaction for habitat and diet
+lme <- lme(shannon_diversity ~ diet*habitat, random = ~1|sex, data = shannon)
+
+# Get statistics
+Anova(lme)
+```
+
+<b> Alpha diversity metrics by diet </b>: <br>
+mean<sub><i>crop-raider</i> = 5.463 (0.681)
+mean<sub><i>non-crop-raider</i> = 5.034 (1.164)
+
+<b> Alpha diversity metrics by habitat </b>: <br>
+mean<sub><i>savanna</i> = 5.336 (1.128)
+mean<sub><i>forest</i> = 5.151 (0.884)
+
+<b> Comparison of alpha diversity by diet and habitat </b>: <br>
+diet: p_value = 0.207, F = 1.662
+habitat: p_value = 2.216, F = 1.596
+diet*habitat: p_value = 0.757, F = 0.098
+
+#### 2d: Plot alpha diversity for each group of interest; run the Rmd chunk below.
+Here, we plot alpha diversity as box plots for only major groups of interest (phylogeny, diet, and habitat).
+
+##### Plot alpha diversity in major groups of interest: `figures/alpha.pdf`
+```{r}
+# Load shannon diversity data
+load("data/shannon.Rda")
+
+# Rename groups for easier plot visualization
+shannon$species <- factor(with(shannon, ifelse(phylogeny=="africana", "L. africana",
+                                               ifelse(phylogeny=="cyclotis", "L. cyclotis", "done"))))
+
+# Get only forest non-crop-raiders for phylogeny plot
+shannon_phylogeny <- shannon %>%
+  filter(diet == "Nonraider" & habitat == "Forest")
+
+# Plot alpha diversity by species
+phylogeny <- ggplot(shannon_phylogeny, aes(x = species, y = shannon_diversity, fill = species)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = F, alpha = 0.8) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Species", y = "Shannon Diversity") + 
+  scale_fill_manual(values = c("red", "blue")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(axis.text.x = element_text(face = "italic")) +   
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+# Get only L. africana for diet and habitat plots
+shannon_diet_habitat <- shannon %>%
+  filter(phylogeny == "africana")
+
+# Plot alpha diversity by diet
+diet <- ggplot(shannon_diet_habitat, aes(x = diet, y = shannon_diversity, fill = diet)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = F, alpha = 0.8) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Diet", y = "Shannon Diversity") + 
+  scale_fill_manual(values = c("midnightblue", "deeppink1")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+# Plot alpha diversity by habitat
+habitat <- ggplot(shannon_diet_habitat, aes(x = habitat, y = shannon_diversity, fill = habitat)) +  
+  geom_boxplot(outlier.shape = NA, show.legend = F, alpha = 0.8) + 
+  geom_point(size = 3, color = "black", fill = "grey") +
+  theme_set(theme_cowplot(12)) +
+  labs(x = "Habitat", y = "Shannon Diversity") + 
+  scale_fill_manual(values = c("forestgreen", "coral1")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(size = 15)) + 
+  theme(axis.title.y = element_text(size = 15)) +
+  theme(axis.text.x = element_text(size = 15)) + 
+  theme(axis.text.y = element_text(size = 15)) +
+  theme(legend.position = c(0.65,0.7)) + 
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+# Plot all Alpha diversity 
+pdf("figures/alpha.pdf", width = 6, height = 13)
+
+plot_grid(phylogeny,
+          diet,
+          habitat,
+          ncol = 1)
+
+dev.off()
+```
+
+This figure was used as the basis for Figure S2 in the final ms.
+
+#### 2e: Calculate alpha diversity wihtin and between age groups; run the Rmd chunk below:
+In this step, we test whether there are differences in alpha diversity between age groups to determine whether age should be included in any other analyses of differential OTU abundance or beta diversity.
+
+##### Calculate alpha diversity within diet and habitat and compare:
+```{r}
+# Load shannon diversity data
+load("data/shannon.Rda")
+
+# Get only L. africana individuals, because all individuals in L. cyclotis are adults
+shannon <- shannon %>%
+  filter(phylogeny == "africana")
+
+# Summarize alpha diversity metrics by age
+shannon %>%
+  group_by(age) %>%
+  summarize(mean = mean(shannon_diversity),
+            sd = sd(shannon_diversity),
+            min = min(shannon_diversity),
+            max = max(shannon_diversity))
+  
+# Run linear mixed effect model by diet and habitat, including an interaction for habitat and diet
+lme <- lme(shannon_diversity ~ age, random = ~1|sex, data = shannon)
+
+# Get statistics
+anova(lme)
+```
+
+<b> Alpha diversity metrics by age </b>: <br>
+mean<sub><i>adult</i> = 5.214 (1.178)
+mean<sub><i>sub-adult</i> = 5.182 (0.865)
+mean<sub><i>juvenile</i> = 5.462 (0.205)
+
+<b> Comparison of alpha diversity by age </b>: <br>
+diet: p_value = 0.885, F = 0.123 (not significant - age therefore was not included in any previous or subsequent analyses)
+
+### STEP 3: Assess beta diversity within African elephant groups of interest.
+In this step, we calculate beta diversity among African elephant phylogenetic groups (i.e., species: <i>L. africana</i> and <i>L. cyclotis</i>), diets (crop-raiders and non-crop-raiders), and habitats (forest and savanna) using PCOA. We test for differences in microbiome structure and composition using PERMANOVA models, including sex as a random stratum in each model.
+
+#### 3a: Calculate standardized abundance within and Bray-curtis distances among each individual to prepare data for beta dispersion and PERMANOVA; run the Rmd chunk below:
+
+##### Standardize abundance and calculate Bray-Curtis distance among individual samples in the data:
+```{r}
+# Load OTU matrix
+load("data/otu_matrix.Rda")
+
+# Standardize abundance data by dividing each number by the total number of samples (individuals in the dataset)
+std_abundance <- data.frame(decostand(otu_matrix[7:ncol(otu_matrix)], "total"))
+
+# Column bind otu_matrix with standradized abundance
+otu_matrix <- cbind(otu_matrix[1:6],
+                    std_abundance)
+
+# Get only L. africana elephants for diet and habitat analysis
+phylogeny_matrix <- otu_matrix %>%
+  filter(diet == "Nonraider" & habitat == "Forest")
+
+# Get only L. africana elephants for diet and habitat analysis
+diet_habitat_matrix <- otu_matrix %>%
+  filter(phylogeny == "africana")
+
+# Calculate Bray-curtis distances between species
+bray_curtis_phylogeny <- vegdist(phylogeny_matrix[7:ncol(phylogeny_matrix)], "bray") 
+
+# Calculate Bray-curtis distances between diets and habitats
+bray_curtis_diet_habitat <- vegdist(diet_habitat_matrix[7:ncol(diet_habitat_matrix)], "bray") 
+
+# Save phylogeny matrix for downstream analyses
+save(phylogeny_matrix, file = "data/phylogeny_matrix.Rda")
+
+# Save diet and habitat matrix for downstream analyses
+save(diet_habitat_matrix, file = "data/diet_habitat_matrix.Rda")
+
+# Save bray-curtis phylogeny data for downstream analyses
+save(bray_curtis_phylogeny, file = "data/bray_curtis_phylogeny.Rda")
+
+# Save bray-curtis diet and habitat data for downstream analyses
+save(bray_curtis_diet_habitat, file = "data/bray_curtis_diet_habitat.Rda")
+```
+
+#### 3b: Run beta dispersion and PERMANOVA by species; run the Rmd chunk below:
+
+##### Run beta dispersion and PERMANOVA by African elephant species:
+```{r}
+# Load bray-curtis phylogeny data
+load("data/bray_curtis_phylogeny.Rda")
+
+# Load phylogeny matrix
+load("data/phylogeny_matrix.Rda")
+
+# Run beta dispersion for  species
+beta <- betadisper(bray_curtis_phylogeny, factor(phylogeny_matrix[,1]), type = c("centroid"))
+
+# Get statistics for beta dispersion
+anova(beta)
+
+# Run PERMANOVA
+permanova <- adonis2(bray_curtis_phylogeny ~ phylogeny, 
+                     phylogeny_matrix, 
+                     Strata = sex, 
+                     distance = "bray", 
+                     permutations = 9999)
+```
+
+<b> Beta dispersion by species </b>: <br>
+p_value = 0.435, F = 0.641
+
+<b> PERMANOVA by species </b>: <br>
+p-value = 0.001, F = 3.527
+
+#### 3c: Run beta dispersion and PERMANOVA by diet and habitat; run the Rmd chunk below:
+
+##### Run beta dispersion and PERMANOVA by African elephant diet and habitat:
+```{r}
+# Load bray-curtis diet and habitat data
+load("data/bray_curtis_diet_habitat.Rda")
+
+# Load diet and habitat matrix
+load("data/diet_habitat_matrix.Rda")
+
+# Run beta dispersion for diet
+beta_diet <- betadisper(bray_curtis_diet_habitat, factor(diet_habitat_matrix[,2]), type = c("centroid"))
+
+# Run beta dispersion for habitat
+beta_habitat <- betadisper(bray_curtis_diet_habitat, factor(diet_habitat_matrix[,3]), type = c("centroid"))
+
+# Get statistics for beta dispersion by diet
+anova(beta_diet)
+
+# Get statistics for beta dispersion by habitat
+anova(beta_habitat)
+
+# Run PERMANOVA by diet
+permanova_diet <- adonis2(bray_curtis_diet_habitat ~ diet, 
+                          diet_habitat_matrix, 
+                          Strata = sex, 
+                          distance = "bray", 
+                          permutations = 9999)
+
+# Run PERMANOVA by habitat
+permanova_habitat <- adonis2(bray_curtis_diet_habitat ~ habitat, 
+                             diet_habitat_matrix, 
+                             Strata = sex, 
+                             distance = "bray", 
+                             permutations = 9999)
+```
+
+<b> Beta dispersion by diet </b>: <br>
+p_value = 0.122, F = 2.514
+
+<b> Beta dispersion by diet </b>: <br>
+p_value = 0.102, F = 2.827
+
+<b> PERMANOVA by diet </b>: <br>
+p-value = 0.012, F = 1.861
+
+<b> PERMANOVA by habitat </b>: <br>
+p-value < 0.001, F = 2.874
+
+#### 3c: Plot beta diversity results using NMDS; run the Rmd chunk below:
+In this step, we use non-parametric multidimensional scaling to plot beta diversity among African elephant groups.
+
+##### Plot beta diversity in major groups of interest: `figures/beta.pdf`
+```{r}
+# Load bray-curtis phylogeny data
+load("data/bray_curtis_phylogeny.Rda")
+
+# Load phylogeny matrix
+load("data/phylogeny_matrix.Rda")
+
+# Load bray-curtis diet and habitat data
+load("data/bray_curtis_diet_habitat.Rda")
+
+# Load diet and habitat matrix
+load("data/diet_habitat_matrix.Rda")
+
+# Get multidimentional scaling for phylogeny
+mds_phylogeny <- metaMDS(bray_curtis_phylogeny,
+                         trace = FALSE, 
+                         autotransform = F)
+
+# Get NMDS scores for phylogeny
+scores_phylogeny <- data.frame(scores(mds_phylogeny))
+
+# Column bind NMDS scores to phylogeny metadata
+scores_phylogeny <- cbind(phylogeny_matrix[1:6],
+                          scores_phylogeny)
+
+# Rename groups for easier plot visualization
+scores_phylogeny$species <- factor(with(scores_phylogeny, ifelse(phylogeny=="africana", "L. africana",
+                                                                 ifelse(phylogeny=="cyclotis", "L. cyclotis", "done"))))
+
+# Get NMDS centroids for phylogeny
+centroids_phylogeny <- aggregate(cbind(NMDS1, NMDS2) ~ species, 
+                                 scores_phylogeny, 
+                                 mean)
+
+# Get variance on centroids
+gg_phylogeny <- merge(scores_phylogeny, 
+                      aggregate(cbind(mean.x = NMDS1, 
+                                      mean.y = NMDS2) ~ species, 
+                      scores_phylogeny, 
+                      mean), 
+                      by = "species")
+
+# Get phylogeny beta diversity NMDS
+phylogeny <- ggplot(gg_phylogeny, aes(NMDS1, NMDS2, color = species)) + 
+  geom_point(size = 2, show.legend = T) + 
+  geom_point(aes(x = mean.x, y = mean.y), size = 2, show.legend = T) + 
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = T) + 
+  theme_set(theme_cowplot(12)) +
+  theme(legend.position=c(0.01,0.85)) + 
+  scale_color_manual(values = c("red2", "blue2")) + 
+  labs(color = "Elephant Species", y = "NMDS 2") +  
+  theme(axis.title.x = element_blank()) + theme(legend.text = element_text(face = "italic")) +
+  theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) +
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(legend.position=c(0.01,0.85)) +
+  theme(plot.margin = margin(15,15,15,15))
+
+# Get multidimentional scaling for diet
+mds_diet <- metaMDS(bray_curtis_diet_habitat,
+                    trace = FALSE, 
+                    autotransform = F)
+
+# Get NMDS scores for diet
+scores_diet <- data.frame(scores(mds_diet))
+
+# Column bind NMDS scores to phylogeny metadata
+scores_diet <- cbind(diet_habitat_matrix[1:6],
+                     scores_diet)
+
+# Get NMDS centroids for phylogeny
+centroids_diet <- aggregate(cbind(NMDS1, NMDS2) ~ diet, 
+                            scores_diet, 
+                            mean)
+
+# Get variance on centroids
+gg_diet <- merge(scores_diet, 
+                 aggregate(cbind(mean.x = NMDS1, 
+                                 mean.y = NMDS2) ~ diet, 
+                           scores_diet, 
+                           mean), 
+                 by = "diet")
+
+# Get phylogeny beta diversity NMDS
+diet <- ggplot(gg_diet, aes(NMDS1, NMDS2, color = diet)) + 
+  geom_point(size = 2, show.legend = T) + 
+  geom_point(aes(x = mean.x, y = mean.y), size = 2, show.legend = T) + 
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = T) + 
+  theme_set(theme_cowplot(12)) +
+  theme(legend.position=c(0.01,0.85)) + 
+  scale_color_manual(values = c("midnightblue", "deeppink1")) + 
+  labs(color = "Elephant Diet", y = "NMDS 2") +  
+  theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) +
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(legend.position = c(0.01,0.85)) + 
+  theme(plot.margin = margin(15,15,15,15))
+
+# Get multidimentional scaling for habitat
+mds_habitat <- metaMDS(bray_curtis_diet_habitat,
+                       trace = FALSE, 
+                       autotransform = F)
+
+# Get NMDS scores for habitat
+scores_habitat <- data.frame(scores(mds_habitat))
+
+# Column bind NMDS scores to phylogeny metadata
+scores_habitat <- cbind(diet_habitat_matrix[1:6],
+                        scores_habitat)
+
+# Get NMDS centroids for phylogeny
+centroids_habitat <- aggregate(cbind(NMDS1, NMDS2) ~ habitat, 
+                            scores_habitat, 
+                            mean)
+
+# Get variance on centroids
+gg_habitat <- merge(scores_habitat, 
+                 aggregate(cbind(mean.x = NMDS1, 
+                                 mean.y = NMDS2) ~ habitat, 
+                           scores_habitat, 
+                           mean), 
+                 by = "habitat")
+
+# Get phylogeny beta diversity NMDS
+habitat <- ggplot(gg_habitat, aes(NMDS1, NMDS2, color = habitat)) + 
+  geom_point(size = 2, show.legend = T) + 
+  geom_point(aes(x = mean.x, y = mean.y), size = 2, show.legend = T) + 
+  geom_segment(aes(x = mean.x, y = mean.y, xend = NMDS1, yend = NMDS2), show.legend = T) + 
+  theme_set(theme_cowplot(12)) +
+  theme(legend.position=c(0.01,0.85)) + 
+  scale_color_manual(values = c("forestgreen", "coral1")) + 
+  labs(color = "Elephant Habitat", y = "NMDS 2") +  
+  theme(plot.title = element_text(size = 20, hjust = 0.5, face = "bold")) +
+  theme(panel.border = element_rect(colour = "black", fill = NA)) +
+  theme(legend.position = c(0.01,0.85)) + 
+  theme(plot.margin = margin(15,15,15,15))
+
+# Plot all figures
+pdf("figures/beta.pdf", width = 6, height = 12) 
+
+plot_grid(phylogeny, 
+          diet, 
+          habitat, 
+          ncol = 1)
+
+dev.off()
+```
+
+This figure is the basis for Figure 3 in the final ms.
+
+### ----------------------- END OF PHASE 3: OTU DIVERSITY ANALYSIS ----------------------- ###
 
 ### ----------------------- END OF ANALYSIS 4: MICROBIOME DIVERSITY AND DIFFERENTIAL OTU ABUNDANCE ANALYSIS  ----------------------- ###
