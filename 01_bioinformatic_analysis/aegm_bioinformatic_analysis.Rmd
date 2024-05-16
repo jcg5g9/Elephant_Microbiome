@@ -1,0 +1,24 @@
+---
+title: "Analysis 1: Metagenomic data processing"
+author: "Joe Gunn"
+date: "2024-02-07"
+output: html_document
+---
+
+# Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
+We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
+
+## Specific Aim: Processing metagenomic data files to determine absolute OTU abundance and differential abundance among African elephant fecal samples
+In this analysis, we use the bioinformatic software pipeline QIIME2 to process all raw metagenomic data files (fastq.gz), i.e., to calculate absolute OTU read abundance across African elephant fecal samples.
+
+## Phases of analysis:
+### Phase 1: Bioinformatic processing
+
+## Libraries needed for analysis: none
+
+### PHASE 1: BIOINFORMATIC PROCESSING
+In this phase of the analysis, follow all steps in the `code/qiime.txt` file in this directory. All steps are carried out in QIIME2
+
+### ----------------------- END OF PHASE 1: BIOINFORMATIC PROCESSING ----------------------- ###
+
+### ----------------------- END OF ANALYSIS 1: METAGENOMIC DATA PROCESSING  ----------------------- ###

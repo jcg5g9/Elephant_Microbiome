@@ -1,0 +1,34 @@
+---
+title: "Analysis 4: Functional microbiome analysis"
+author: "Joe Gunn"
+date: "2024-02-07"
+output: html_document
+---
+
+# Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
+We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
+## Specific Aim: Assessing functional role of OTUs represented across samples and assessing differences in functional microbiota across groups of interst (phylogeny, diet, and habitat)
+In this analysis, we...
+ 
+## Phases of analysis:
+### Phase 1: 
+### Phase 2: 
+### Phase 3: 
+
+## Libraries needed for analysis
+```{r}
+library(readxl)
+library(cowplot)
+library(tidyverse)
+```
+
+## PHASE 1: 
+In this phase of the analysis, 
+
+### STEP 1: Identify taxa with the greatest relative abundance at the phylum level
+In this step, 
+
+
+### ----------------------- END OF PHASE 3: ----------------------- ###
+
+### ----------------------- END OF ANALYSIS 5: FUNCTIONAL MICROBIOME ANALYSIS ----------------------- ###
