@@ -14,6 +14,14 @@ In this analysis, we use the bioinformatic software pipeline QIIME2 to process a
 ## Phases of analysis:
 ### Phase 1: Bioinformatic processing
 
+<b>Programs needed</b>: <br>
+
+QIIMNE2 v.2019.1 (Caporaso et al., 2010) <br>
+
+<b>Citation</b>:<br>
+
+Caporaso, J. G., Kuczynski, J., Stombaugh, J., Bittinger, K., Bushman, F. D., Costello, E. K., … Knight, R. (2010). QIIME allows analysis of high-throughput community sequence data. Nature Methods, 7, 335–336. https://doi.org/10.1038/nmeth.f.303
+
 ## Libraries needed for analysis: none
 
 ### PHASE 1: BIOINFORMATIC PROCESSING

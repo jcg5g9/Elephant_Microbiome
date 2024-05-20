@@ -71,7 +71,7 @@ In this analysis, we assess differential abundance in relatively highly represen
 #### Run the code: `04_microbiome_diversity_analysis/aegm_microbiome_diversity_analysis.Rmd`
 
 ### Analysis 5: Functional microbiome analysis
-In this analysis,
+In this analysis, we characterized the physiological importance (aka roles) of the African elephant gut microbiome by classifying OTUs into their corresponding, primary metabolic functions. To identify metabolic pathways, we used the Kyoto Encyclopedia of Genes and Genome (KEGG) Orthology (KO) (Kanehisa & Goto, 2000; Kanehisa et al., 2014) and clustered OTUs by the BRITE hierarchy. We ultimately assessed differences in metabolic pathway abundance among African elephant groups of interest to test for potential differences due to phylogeny, diet, or habitat.
 
 #### Run the code: `05_functional_microbiome_analysis/aegm_functional_microbiome_analysis.Rmd`
 

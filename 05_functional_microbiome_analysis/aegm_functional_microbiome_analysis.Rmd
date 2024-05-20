@@ -7,28 +7,425 @@ output: html_document
 
 # Project: Assessing effects of phylogeny, diet, and habitat on gut microbial composition in African elephants 
 We characterized the gut microbiome of African Savanna elephants (<i>Loxodonta africana</i>) and African Forest elephants (<i>Loxodonta cyclotis</i>). We assessed the relationship of gut microbial composition, including analyses of alpha and beta diversity, with host phylogeny (i.e., species) and habitat type (i.e., forest or savanna) for both species. We also assessed the relationship between microbial composition and diet (i.e., crop-raiding vs. non-crop-raiding) within <i>L. africana</i>. 
+
 ## Specific Aim: Assessing functional role of OTUs represented across samples and assessing differences in functional microbiota across groups of interst (phylogeny, diet, and habitat)
-In this analysis, we...
+In this analysis, we characterized the physiological importance (aka roles) of the African elephant gut microbiome by classifying OTUs into their corresponding, primary metabolic functions. To identify metabolic pathways, we used the Kyoto Encyclopedia of Genes and Genome (KEGG) Orthology (KO) (Kanehisa & Goto, 2000; Kanehisa et al., 2014) via the software program PICRUST2 with the Q2-PICRUST2 plugin and clustered OTUs by the BRITE hierarchy. We ultimately assessed differences in metabolic network structure among African elephant groups of interest to test for potential differences due to phylogeny, diet, or habitat.
  
 ## Phases of analysis:
-### Phase 1: 
-### Phase 2: 
-### Phase 3: 
+### Phase 1: Data read-in, filtering, and preparation
+### Phase 2: Assess differential metabolic pathway abundance among African elephant groups
+
+<b>Programs needed</b>: <br>
+
+PICRUST2 (Langille et al., 2013)
+
+<b>Citation</b>:<br>
+
+Langille, M. G. I., Zaneveld, J., Caporaso, J. G., McDonald, D., Knights, D., Reyes, J. A., … Huttenhower, C. (2013). Predictive functional profilin of microbial communities using 16S rRNA marker gene sequences. Nature Biotechnology, 31, 814–821. https://doi.org/10.1038/nbt.2676
 
 ## Libraries needed for analysis
 ```{r}
 library(readxl)
 library(cowplot)
 library(tidyverse)
+library(janitor)
 ```
 
-## PHASE 1: 
-In this phase of the analysis, 
+## PHASE 1: DATA READ-IN, FILTERING, AND PREPARATION
+In this phase of the analysis, we read in raw data, generated and curated using the software program PICRUST2, which contains raw abundances of broad metabolic pathways (i.e., KEGG level 1) per African elephant sample. We modify the data table for all downstream analyses of differential metabolic network structure and function among African elephant groups of interest.
 
-### STEP 1: Identify taxa with the greatest relative abundance at the phylum level
-In this step, 
+### STEP 1: Read in and modify raw KEGG data for downstream analyses; run the Rmd chunk below:
+
+##### Read in and modify raw KEGG data:
+```{r}
+# read in raw KEGG pathway abundance data
+kegg <- read_excel("../raw_data/kegg.xlsx")
+
+# load sample metadata
+load("../02_data_summary_analysis/data/metadata.Rda")
+
+# modify data and calculate sum of abundance per individual for each pathway group 
+kegg <- kegg %>%
+  dplyr::select(-kegg) %>%
+  mutate(pathway = factor(pathway)) %>%
+  gather(MM69:M10, key = "ind_id", value = "abundance") %>%
+  group_by(ind_id, pathway) %>%
+  summarize(abundance = sum(abundance))
+
+# Modify data to calculate relative contribution of each pathway group to each individual
+kegg <- kegg %>%
+  group_by(ind_id) %>%
+  summarize(total_abundance = sum(abundance)) %>%
+  full_join(kegg, by = "ind_id") %>%
+  mutate(contribution = abundance/total_abundance)
+
+# Get desired columns and spread so that individuals are columns, pathways are rows, and entries are relative contributions
+kegg <- kegg %>%
+  dplyr::select(ind_id, pathway, contribution) %>%
+  spread(ind_id, contribution)
+
+# Rename groups for easier model interpretation and plotting
+kegg$pathway <- factor(with(kegg, ifelse(pathway=="Amino Acid metabolism", "A",
+                                         ifelse(pathway=="Biosynthesis of other secondary metabolites", "B",
+                                                ifelse(pathway=="Carbohydrate metabolism", "C",
+                                                       ifelse(pathway=="Energy metabolism", "D",
+                                                              ifelse(pathway=="Glycan biosynthesis and metabolism", "E",
+                                                                     ifelse(pathway=="Lipid metabolism", "F",
+                                                                            ifelse(pathway=="Metabolism of cofactors and vitamins", "G",
+                                                                                   ifelse(pathway=="Metabolism of other amino acids", "H",
+                                                                                          ifelse(pathway=="Metabolism of terpeniods and polyketides", "I",
+                                                                                                 ifelse(pathway=="Nucleotide metabolism", "J",
+                                                                                                        ifelse(pathway=="Xenobiotics biodegradation and metabolism", "K","done")))))))))))))
+
+# Transpose data frame so that columns are pathways and rows are individuals
+kegg <- kegg %>% 
+  t %>% 
+  as.data.frame() %>% 
+  row_to_names(1) %>%
+  rownames_to_column("ind_id") %>%
+  mutate(ind_id = factor(ind_id)) %>%
+  mutate_if(is.character, as.numeric)
+
+# merge kegg data with sample metadata
+kegg <- merge(metadata, 
+              kegg, 
+              by = "ind_id")
+
+# Omit poor quality sample (see Analysis 3)
+kegg <- kegg %>%
+  filter(ind_id != "OB182")
+
+# save kegg data for downstream analyses
+save(kegg, file = "data/kegg.Rda")
+```
+
+### ----------------------- END OF PHASE 1: DATA READ-IN, FILTERING, AND PREPARATION ----------------------- ###
+
+## PHASE 2: ASSESS DIFFERENTIAL METABOLIC PATHWAY ABUNDANCE AMONG AFRICAN ELEPHANT GROUPS
+In this phase of the analysis, we use the kegg pathway dataset generated in PHASE 1 above to assess differences in metabolic pathway abundance between African elephant groups of interest (i.e., phylogeny, diet, and habitat) using linear mixed effect models.
+
+### STEP 1: Assess differential metabolic pathway abundance between African elephant species (<i>L. africana</i> and <i>L. cyclotis</i>), controlling for diet and habitat.
+
+#### 1a: Run linear mixed effect models for each metabolic pathway by species; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by species: 
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+phylogeny <- kegg %>%
+  filter(habitat == "Forest" & diet == "Nonraider")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(pathway = factor(colnames(phylogeny[,11:ncol(phylogeny)])),
+                    p_value = numeric(length = ncol(phylogeny[,11:ncol(phylogeny)])))
 
 
-### ----------------------- END OF PHASE 3: ----------------------- ###
+# Run general linear models on pathway columns
+for (ii in 11:ncol(phylogeny)) {
+  
+  col = phylogeny[,ii] # define response 
+  lm <- lm(col ~ phylogeny, data = phylogeny) # define linear model 
+  p_value <- summary(lm)$coefficients[2,4] # extract p value
+  stats[ii-11,2] <- p_value # Put p value in table
+  
+  }
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Rename groups back to pathway names for ease of interpretation
+stats$pathway <- factor(with(stats, ifelse(pathway=="A", "Amino Acid metabolism",
+                                         ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                       ifelse(pathway=="D", "Energy metabolism",
+                                                              ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                     ifelse(pathway=="F", "Lipid metabolism",
+                                                                            ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                   ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                          ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                 ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                        ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+```
+
+<b> Model results (significant metabolic pathway differences between elephant species) </b>: <br>
+Carbohydrate metabolism: p_corrected = 0.005
+Metabolism of other amino acids: p_corrected = 0.006, 
+Xenobiotics biodegradation and metabolism: p_corrected < 0.001
+
+#### 1b: Plot differences in metabolic pathway contributions by species; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by species: `figures/species.pdf`
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+phylogeny <- kegg %>%
+  filter(habitat == "Forest" & diet == "Nonraider") %>%
+  gather(A:K, key = "pathway", value = "contribution") %>%
+  group_by(pathway, phylogeny) %>%
+  summarize(mean = mean(contribution), 
+            sd = sd(contribution))
+
+# Rename groups back to pathway names for ease of interpretation
+phylogeny$pathway <- factor(with(phylogeny, ifelse(pathway=="A", "Amino Acid metabolism",
+                                                   ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                          ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                                 ifelse(pathway=="D", "Energy metabolism",
+                                                                        ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                               ifelse(pathway=="F", "Lipid metabolism",
+                                                                                      ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                             ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                                    ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                           ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                                  ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+
+# Plot
+pdf("figures/species.pdf", width = 18, height = 12) 
+
+ggplot(phylogeny, aes(x = pathway, y = mean, fill = phylogeny)) + 
+  geom_bar(position=position_dodge(), stat="identity", show.legend = T) + 
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.4, position=position_dodge(.9)) + 
+  scale_fill_manual(values = c("red2", "blue2")) + 
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(legend.position = c(0.6,0.9)) + 
+  labs(fill = "Elephant Species", x = "Metabolic Pathway", y = "Mean Metabolic Contribution") +
+  theme(legend.text = element_text(size = 30)) + 
+  theme(legend.title = element_text(size = 30, face = "bold")) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.text = element_text(face = "italic")) + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30))
+
+dev.off()
+```
+
+This figure was the basis for Figure 4 in the final ms.
+
+### STEP 2: Assess differential metabolic pathway abundance between African elephant diet (crop-raider vs. non-crop-raiders), controlling for species.
+
+#### 2a: Run linear mixed effect models for each metabolic pathway by diet; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by diet: 
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+diet <- kegg %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(pathway = factor(colnames(diet[,11:ncol(diet)])),
+                    p_value = numeric(length = ncol(diet[,11:ncol(diet)])))
+
+
+# Run general linear models on pathway columns
+for (ii in 11:ncol(diet)) {
+  
+  col = diet[,ii] # define response 
+  lm <- lm(col ~ diet, data = diet) # define linear model 
+  p_value <- summary(lm)$coefficients[2,4] # extract p value
+  stats[ii-11,2] <- p_value # Put p value in table
+  
+  }
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Rename groups back to pathway names for ease of interpretation
+stats$pathway <- factor(with(stats, ifelse(pathway=="A", "Amino Acid metabolism",
+                                         ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                       ifelse(pathway=="D", "Energy metabolism",
+                                                              ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                     ifelse(pathway=="F", "Lipid metabolism",
+                                                                            ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                   ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                          ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                 ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                        ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+```
+
+<b> Model results (significant metabolic pathway differences between elephant diet) </b>: <br>
+Xenobiotics biodegradation and metabolism: p_corrected < 0.001
+
+#### 2b: Plot differences in metabolic pathway contributions by diet; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by diet: `figures/diet.pdf`
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+diet <- kegg %>%
+  filter(phylogeny == "africana") %>%
+  gather(A:K, key = "pathway", value = "contribution") %>%
+  group_by(pathway, diet) %>%
+  summarize(mean = mean(contribution), 
+            sd = sd(contribution))
+
+# Rename groups back to pathway names for ease of interpretation
+diet$pathway <- factor(with(diet, ifelse(pathway=="A", "Amino Acid metabolism",
+                                         ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                       ifelse(pathway=="D", "Energy metabolism",
+                                                              ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                     ifelse(pathway=="F", "Lipid metabolism",
+                                                                            ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                   ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                          ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                 ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                        ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+
+# Plot
+pdf("figures/diet.pdf", width = 18, height = 12) 
+
+ggplot(diet, aes(x = pathway, y = mean, fill = diet)) + 
+  geom_bar(position=position_dodge(), stat="identity", show.legend = T) + 
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.4, position=position_dodge(.9)) + 
+  scale_fill_manual(values = c("midnightblue", "deeppink1")) + 
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(legend.position = c(0.6,0.9)) + 
+  labs(fill = "Elephant Diet", x = "Metabolic Pathway", y = "Mean Metabolic Contribution") +
+  theme(legend.text = element_text(size = 30)) + 
+  theme(legend.title = element_text(size = 30, face = "bold")) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.text = element_text(face = "italic")) + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30))
+
+dev.off()
+```
+
+### STEP 3: Assess differential metabolic pathway abundance between African elephant habitat type (savanna vs. forest), controlling for species.
+
+#### 3a: Run linear mixed effect models for each metabolic pathway by habitat; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by habitat: 
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+habitat <- kegg %>%
+  filter(phylogeny == "africana")
+
+# Create table to hold p values and F values from general linear mixed models 
+stats <- data.frame(pathway = factor(colnames(habitat[,11:ncol(habitat)])),
+                    p_value = numeric(length = ncol(habitat[,11:ncol(habitat)])))
+
+
+# Run general linear models on pathway columns
+for (ii in 11:ncol(habitat)) {
+  
+  col = habitat[,ii] # define response 
+  lm <- lm(col ~ habitat, data = habitat) # define linear model 
+  p_value <- summary(lm)$coefficients[2,4] # extract p value
+  stats[ii-11,2] <- p_value # Put p value in table
+  
+  }
+
+# Append p values corrected for false discovery rate to the stats data table
+stats$p_corrected <- p.adjust(stats$p_value, method = "fdr")
+
+# Rename groups back to pathway names for ease of interpretation
+stats$pathway <- factor(with(stats, ifelse(pathway=="A", "Amino Acid metabolism",
+                                         ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                       ifelse(pathway=="D", "Energy metabolism",
+                                                              ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                     ifelse(pathway=="F", "Lipid metabolism",
+                                                                            ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                   ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                          ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                 ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                        ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+```
+
+<b> Model results (significant metabolic pathway differences between elephant habitat) </b>: <br>
+Xenobiotics biodegradation and metabolism: p_corrected < 0.001
+
+#### 3b: Plot differences in metabolic pathway contributions by habitat; run the Rmd chunk below:
+
+##### Run linear mixed effect models for each metabolic pathway by habitat: `figures/habitat.pdf`
+```{r}
+# Load kegg data
+load("data/kegg.Rda")
+
+# Set scipen to avoid scientific notation
+options(scipen = 999)
+
+# Filter data to include only forest non-crop-raiders ("f_ncr")
+habitat <- kegg %>%
+  filter(phylogeny == "africana") %>%
+  gather(A:K, key = "pathway", value = "contribution") %>%
+  group_by(pathway, habitat) %>%
+  summarize(mean = mean(contribution), 
+            sd = sd(contribution))
+
+# Rename groups back to pathway names for ease of interpretation
+habitat$pathway <- factor(with(habitat, ifelse(pathway=="A", "Amino Acid metabolism",
+                                               ifelse(pathway=="B", "Biosynthesis of other secondary metabolites",
+                                                      ifelse(pathway=="C", "Carbohydrate metabolism",
+                                                             ifelse(pathway=="D", "Energy metabolism",
+                                                                    ifelse(pathway=="E", "Glycan biosynthesis and metabolism",
+                                                                           ifelse(pathway=="F", "Lipid metabolism",
+                                                                                  ifelse(pathway=="G", "Metabolism of cofactors and vitamins",
+                                                                                         ifelse(pathway=="H", "Metabolism of other amino acids",
+                                                                                                ifelse(pathway=="I", "Metabolism of terpeniods and polyketides",
+                                                                                                       ifelse(pathway=="J", "Nucleotide metabolism",
+                                                                                                              ifelse(pathway=="K", "Xenobiotics biodegradation and metabolism", "done")))))))))))))
+
+# Plot
+pdf("figures/habitat.pdf", width = 18, height = 12) 
+
+ggplot(habitat, aes(x = pathway, y = mean, fill = habitat)) + 
+  geom_bar(position=position_dodge(), stat="identity", show.legend = T) + 
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.4, position=position_dodge(.9)) + 
+  scale_fill_manual(values = c("forestgreen", "coral1")) + 
+  theme_set(theme_cowplot(12)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) + 
+  theme(axis.text = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30)) + 
+  theme(legend.position = c(0.6,0.9)) + 
+  labs(fill = "Elephant Habitat", x = "Metabolic Pathway", y = "Mean Metabolic Contribution") +
+  theme(legend.text = element_text(size = 30)) + 
+  theme(legend.title = element_text(size = 30, face = "bold")) + 
+  theme(legend.text = element_text(size = 30)) +
+  theme(legend.text = element_text(face = "italic")) + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size = 30)) + 
+  theme(axis.title = element_text(size = 30))
+
+dev.off()
+```
+
+### ----------------------- END OF PHASE 2: ASSESS DIFFERENTIAL METABOLIC PATHWAY ABUNDANCE AMONG AFRICAN ELEPHANT GROUPS ----------------------- ###
 
 ### ----------------------- END OF ANALYSIS 5: FUNCTIONAL MICROBIOME ANALYSIS ----------------------- ###
