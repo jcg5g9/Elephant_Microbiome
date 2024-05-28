@@ -78,7 +78,7 @@ In this step, we read in the full taxonomic classification data (`../raw_data/ta
    
 We also generate a "phyloseq" object, a formatted data object compatible with the phyloseq software library, which contains the taxonomic classificaiton, otu abundance, and phylogenetic tree relationship data, along with associated metadata. We use the phyloseq object for downstream analyses. We merge these two datasets to get a clean version of the taxonomic classification and confidence data in this analysis.
 
-##### 1a.1. Read in full dataset, convert to datatable, restructure, and convert characters to facotrs; run the Rmd chunk below.
+##### 1b.1. Read in full dataset, convert to datatable, restructure, and convert characters to factors; run the Rmd chunk below.
 
 ##### Read in and clean full taxonomy data:
 ```{r}
@@ -126,7 +126,7 @@ save(phyloseq, file = "data/phyloseq.Rda")
 
 ### ----------------------- END OF PHASE 1: DATA READ-IN AND PREPARATION ----------------------- ###
 
-## PHASE 3: SUMMARY OF METADATA
+## PHASE 2: SUMMARY OF METADATA
 In this phase of analysis, we summarize the full metadata set, giving numbers of samples per group of interest in downstream analyses.
 
 ### STEP 1: Summarize the full metadata.
